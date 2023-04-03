@@ -60,8 +60,13 @@ export default function GameStarted() {
     }
     <Paper sx={{ position: 'absolute', bottom: hand.turn ? 0 : -75, width: '100%', display: 'flex', justifyContent: 'space-around' }}>
       {
-        hand.cards.map(({ suit, value }) =>
-          <Typography key={value} variant="h1" color={suit % 2 ? '#000' : '#f00'}>
+        hand.cards.map(({ suit, value }, index) =>
+          <Typography
+            key={value}
+            variant="h1"
+            color={suit % 2 ? '#000' : '#f00'}
+            onClick={() => hand.turn && appDispatch({ type: 'playCards', cardIndexes: [ index ] })}
+          >
             {CardChars[value]}
           </Typography>
         )

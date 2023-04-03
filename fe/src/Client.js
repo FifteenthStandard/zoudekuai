@@ -46,6 +46,10 @@ export default class Client {
     await this.post('/start-game', { gameCode });
   }
 
+  async playCards(gameCode, cardIndexes) {
+    await this.post('/play-cards', { gameCode, cardIndexes });
+  }
+
   async post(path, body) {
     body = JSON.stringify(body);
     const resp = await fetch(`${baseUrl}${path}`, { body, method: 'POST', headers: { 'Authorization': `Basic ${uuid}` } });

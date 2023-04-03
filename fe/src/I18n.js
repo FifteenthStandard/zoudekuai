@@ -1,6 +1,7 @@
 const Strings = {
   'cn': {
     Cancel: 'Cancel 🇨🇳',
+    CardsPlayed: name => `${name} took their turn 🇨🇳`,
     GameCode: 'Game Code 🇨🇳',
     GameCodeRequired: 'Game Code is required 🇨🇳',
     JoinGame: 'JG 🇨🇳',
@@ -18,6 +19,7 @@ const Strings = {
   },
   'en': {
     Cancel: 'Cancel',
+    CardsPlayed: name => `${name} took their turn`,
     GameCode: 'Game Code',
     GameCodeRequired: 'Game Code is required',
     JoinGame: 'Join Game',

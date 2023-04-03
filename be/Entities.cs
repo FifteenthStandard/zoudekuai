@@ -73,6 +73,13 @@ public class RoundEntity : ITableEntity
         get => PlayerNames.Serialize();
         set => PlayerNames = value.Deserialize();
     }
+    [IgnoreDataMember]
+    public List<int> PlayerCards { get; set; } = new List<int>();
+    public string PlayerCardsStr
+    {
+        get => PlayerCards.Serialize();
+        set => PlayerCards = value.Deserialize<int>();
+    }
 }
 
 public class HandEntity : ITableEntity
@@ -92,6 +99,6 @@ public class HandEntity : ITableEntity
     public string CardsStr
     {
         get => Cards.Select(card => card.Value).Serialize();
-        set => value.Deserialize<int>().Select(Card.FromValue);
+        set => Cards = value.Deserialize<int>().Select(Card.FromValue).ToList();
     }
 }

@@ -101,6 +101,7 @@ public class StartGameFunction : FunctionBase
             StoleIndex = -1,
             PlayerUuids = gameEntity.PlayerUuids,
             PlayerNames = gameEntity.PlayerNames,
+            PlayerCards = handEntities.Select(hand => hand.Cards.Count).ToList(),
         };
 
         try
@@ -149,12 +150,12 @@ public class StartGameFunction : FunctionBase
         {
             Status = roundEntity.Status,
             RoundNumber = roundEntity.RoundNumber,
-            Players = handEntities
-                .Select((hand, index) =>
+            Players = roundEntity.PlayerNames.Zip(roundEntity.PlayerCards)
+                .Select((player, index) =>
                     new RoundMessage.Player
                     {
-                        Name = hand.Name,
-                        Cards = hand.Cards.Count,
+                        Name = player.First,
+                        Cards = player.Second,
                         Turn = roundEntity.TurnIndex == index,
                         Stole = roundEntity.StoleIndex == index,
                     })

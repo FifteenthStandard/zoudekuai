@@ -67,6 +67,9 @@ export function AppProvider({ children }) {
       case 'startGame':
         state.client.startGame(state.game.gameCode);
         return state;
+      case 'playCards':
+        state.client.playCards(state.game.gameCode, action.cardIndexes);
+        return state;
       case 'gameUpdate':
         return {
           ...state,
