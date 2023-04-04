@@ -50,11 +50,11 @@ const PlayerCardPositions = [
 ];
 
 const PositionIcons = [
-  <LooksOne />,
-  <LooksTwo />,
-  <Looks3 />,
-  <Looks4 />,
-  <Looks5 />
+  <LooksOne key="position" />,
+  <LooksTwo key="position" />,
+  <Looks3 key="position" />,
+  <Looks4 key="position" />,
+  <Looks5 key="position" />
 ];
 
 export default function GameStarted() {
@@ -104,16 +104,27 @@ export default function GameStarted() {
       </Stack>
     </Paper>
     {
-      round.players.map((player, index) =>
-        <Paper key={index} sx={{ width: player.turn ? '50vw' : '45vw', position: 'absolute', ...PlayerCardPositions[index] }}>
+      round.players.map((player, index) => {
+        const elems = [
+          <Typography key="name">{player.name}</Typography>,
+          player.stole ? <Report key="stole" /> : null,
+          PositionIcons[player.position] || <Typography key="cards">{'🂠'.repeat(player.cards)}</Typography>,
+          player.turn ? <HourglassTop key="turn" /> : null,
+        ];
+        if (index >= 2) elems.reverse();
+        return <Paper
+          key={index}
+          sx={{
+            width: player.position !== null ? '25vw' : player.turn ? '50vw' : '45vw',
+            position: 'absolute',
+            ...PlayerCardPositions[index]
+          }}
+        >
           <Stack direction="row" padding={1} spacing={2} sx={{ display: 'flex', justifyContent: 'space-around' }}>
-            {player.turn && <HourglassTop />}
-            <Typography>{player.name}</Typography>
-            {player.stole && <Report />}
-            {PositionIcons[player.position] || <Typography>{'🂠'.repeat(player.cards)}</Typography>}
+            {elems}
           </Stack>
         </Paper>
-      )
+      })
     }
     <Stack ref={discardRef} direction="column" spacing={1}
       sx={{ position: 'absolute', top: 300, height: 'calc(100vh - 450px)', width: '100%', overflowY: 'scroll', display: 'flex', alignItems: 'center' }}
