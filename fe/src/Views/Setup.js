@@ -19,6 +19,7 @@ import {
   Typography,
 } from '@mui/material';
 import {
+  getInitialValue,
   useAppState,
   useAppDispatch,
 } from '../AppContext';
@@ -31,7 +32,7 @@ export default function Start() {
 
   const [submitted, setSubmitted] = useState(false);
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState(getInitialValue('name', ''));
   const [nameError, setNameError] = useState('');
 
   const handleNewGame = () => {

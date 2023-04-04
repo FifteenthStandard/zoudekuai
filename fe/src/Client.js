@@ -4,10 +4,10 @@ import {
 } from '@microsoft/signalr';
 
 const baseUrl = 'http://localhost:7071/api';
-const uuid = ('0000000000' + Math.floor(Math.random() * Math.pow(16, 10)).toString(16)).slice(-10);
 
 export default class Client {
-  constructor(dispatch) {
+  constructor(uuid, dispatch) {
+    this.uuid = uuid;
     this.dispatch = dispatch;
 
     this.connect();
@@ -31,15 +31,15 @@ export default class Client {
       this.dispatch({ type: 'disconnected' });
     })
 
-    this.connection.on('gameUpdate', function (game, message, ...args) {
+    this.connection.on('gameUpdate', (game, message, ...args) => {
       if (message) this.dispatch({ type: 'snackbar', message, args });
       this.dispatch({ type: 'gameUpdate', game: JSON.parse(game) });
     });
-    this.connection.on('roundUpdate', function (round, message, ...args) {
+    this.connection.on('roundUpdate', (round, message, ...args) => {
       if (message) this.dispatch({ type: 'snackbar', message, args });
       this.dispatch({ type: 'roundUpdate', round: JSON.parse(round) });
     });
-    this.connection.on('handUpdate', function (hand) {
+    this.connection.on('handUpdate', (hand) => {
       this.dispatch({ type: 'handUpdate', hand: JSON.parse(hand) });
     });
 
@@ -70,7 +70,7 @@ export default class Client {
 
   async post(path, body) {
     body = JSON.stringify(body);
-    const resp = await fetch(`${baseUrl}${path}`, { body, method: 'POST', headers: { 'Authorization': `Basic ${uuid}` } });
+    const resp = await fetch(`${baseUrl}${path}`, { body, method: 'POST', headers: { 'Authorization': `Basic ${this.uuid}` } });
     try {
       return await resp.json();
     } catch {
