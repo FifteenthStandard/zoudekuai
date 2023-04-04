@@ -117,6 +117,12 @@ public class PlayCardsFunction : FunctionBase
             return BadRequest("Count must match current play");
         }
 
+        if (roundEntity.Discard.Any() && playedCards[0].Value < roundEntity.Discard.Last()[0].Value)
+        {
+            logger.LogWarning("Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, "Cards must beat current play");
+            return BadRequest("Cards must beat current play");
+        }
+
         int? rank = null;
         foreach (var cardIndex in playedCardIndexes)
         {

@@ -90,10 +90,14 @@ export default function GameStarted() {
     } else {
       newIndexes = cardIndexes;
     }
+    newIndexes.sort((i, j) => j - i);
     setCardIndexes(newIndexes);
   };
 
-  const canPlayCards = round.discard.length === 0 || cardIndexes.length === round.discard[round.discard.length-1].length;
+  const lastPlay = round.discard.length > 0 ? round.discard[round.discard.length-1] : null;
+  const invalidPlay = round.discard.length > 0 &&
+    (cardIndexes.length !== lastPlay.length ||
+      hand.cards[cardIndexes[0]].value < lastPlay[0].value);
 
   const handlePlayCards = () => {
     if (!hand.turn || cardIndexes.length === 0) return;
@@ -169,7 +173,7 @@ export default function GameStarted() {
       hand.turn &&
         <Button
           sx={{ position: 'absolute', bottom: 100, left: '50%', transform: 'translateX(-50%)' }}
-          disabled={!canPlayCards}
+          disabled={invalidPlay}
           onClick={handlePlayCards}
         >
           Play
