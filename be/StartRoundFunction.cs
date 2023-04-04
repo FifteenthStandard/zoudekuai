@@ -12,16 +12,16 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Extensions.Logging;
 
-public class StartGameFunction : FunctionBase
+public class StartRoundFunction : FunctionBase
 {
-    public class StartGameRequest
+    public class StartRoundRequest
     {
         [JsonPropertyName("gameCode")]
         public string GameCode { get; set; }
     }
 
-    [FunctionName("start-game")]
-    public async Task<IActionResult> StartGame(
+    [FunctionName("start-round")]
+    public async Task<IActionResult> StartRound(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", "options")] HttpRequest req,
         [Table("zoudekuai")] TableClient table,
         [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRMessage> messages,
@@ -30,12 +30,12 @@ public class StartGameFunction : FunctionBase
         SetCorsHeaders(req);
         if (IsCorsPreflight(req)) return Ok();
 
-        logger.LogInformation($"Request to start a game");
+        logger.LogInformation($"Request to start a round");
 
         var player = await GetPlayerFromRequest(req, table);
 
-        var startGameRequest = await JsonSerializer.DeserializeAsync<StartGameRequest>(req.Body);
-        var gameCode = startGameRequest.GameCode;
+        var startRoundRequest = await JsonSerializer.DeserializeAsync<StartRoundRequest>(req.Body);
+        var gameCode = startRoundRequest.GameCode;
 
         GameEntity gameEntity;
         try
@@ -57,24 +57,20 @@ public class StartGameFunction : FunctionBase
 
         if (player.Uuid != gameEntity.HostUuid)
         {
-            logger.LogWarning("Request to start a game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, "Not the host");
+            logger.LogWarning("Request to start a round with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, "Not the host");
             return BadRequest("Not the host");
         }
 
         if (gameEntity.PlayerUuids.Count < 4)
         {
-            logger.LogWarning("Request to start a game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, "Not enough players");
+            logger.LogWarning("Request to start a round with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, "Not enough players");
             return BadRequest("Not enough players");
         }
 
-        if (gameEntity.Status != GameStatus.NotStarted)
-        {
-            logger.LogWarning("Request to start a game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, "Game already started");
-            return BadRequest("Game already started");
-        }
+        // TODO check if round is already in progress
 
         gameEntity.Status = GameStatus.Started;
-        gameEntity.RoundNumber = 1;
+        gameEntity.RoundNumber += 1;
 
         var deck = new Deck(gameEntity.PlayerNames.Count);
 
@@ -109,7 +105,7 @@ public class StartGameFunction : FunctionBase
 
         try
         {
-            logger.LogInformation("Request to start a game with Game Code {gameCode} by {uuid} is processing", gameCode, player.Uuid);
+            logger.LogInformation("Request to start a round with Game Code {gameCode} by {uuid} is processing", gameCode, player.Uuid);
             foreach (var handEntity in handEntities)
             {
                 await table.AddEntityAsync(handEntity);
@@ -119,7 +115,7 @@ public class StartGameFunction : FunctionBase
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Request to start a game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, ex.Message);
+            logger.LogError(ex, "Request to start a round with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, ex.Message);
             throw;
         }
 
@@ -202,7 +198,7 @@ public class StartGameFunction : FunctionBase
                 Arguments = new [] { JsonSerializer.Serialize(gameMessage) },
             });
 
-        logger.LogInformation("Request to start a game with Game Code {gameCode} by {uuid} was successful", gameCode, player.Uuid);
+        logger.LogInformation("Request to start a round with Game Code {gameCode} by {uuid} was successful", gameCode, player.Uuid);
 
         return Accepted();
     }

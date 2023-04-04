@@ -65,7 +65,7 @@ export default class Client {
   }
 
   async startRound(gameCode) {
-    await this.post('/start-game', { gameCode });
+    await this.post('/start-round', { gameCode });
   }
 
   async playCards(gameCode, cardIndexes) {

@@ -111,6 +111,15 @@ export function AppProvider({ children }) {
         return {
           ...state,
           status: 'Started',
+          round: {
+            status: 'Started',
+            roundNumber: null,
+            players: state.game.players.map(name => ({ name, cards: 6 })),
+            discard: [],
+          },
+          hand: {
+            cards: new Array(6).fill({ suit: 0, value: 52, }),
+          },
         };
       case 'playCards':
         state.client.playCards(state.game.gameCode, action.cardIndexes);

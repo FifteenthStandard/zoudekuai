@@ -40,6 +40,7 @@ const CardChars = [
   '🃋','🃛','🂻','🂫',
   '🃍','🃝','🂽','🂭',
   '🃎','🃞','🂾','🂮',
+  '🂠',
 ];
 
 const PlayerCardPositions = [
@@ -119,7 +120,7 @@ export default function GameStarted() {
         return <Paper
           key={index}
           sx={{
-            width: player.position !== null ? '25vw' : player.turn ? '50vw' : '45vw',
+            width: typeof(player.position) === 'number' ? '25vw' : player.turn ? '50vw' : '45vw',
             position: 'absolute',
             ...PlayerCardPositions[index]
           }}
@@ -169,7 +170,7 @@ export default function GameStarted() {
           {
             hand.cards.map(({ suit, value }, index) =>
               <Typography
-                key={value}
+                key={`${index}-${value}`}
                 variant="h1"
                 color={suit % 2 ? '#000' : '#f00'}
                 onClick={handleCardSelect(index)}
