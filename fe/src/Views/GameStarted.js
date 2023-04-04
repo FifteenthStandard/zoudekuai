@@ -74,8 +74,13 @@ export default function GameStarted() {
   
   const [cardIndexes, setCardIndexes] = useState([]);
 
+  useEffect(() => {
+    if (hand.cards[0] && hand.cards[0].value === 0) setCardIndexes([0]);
+  }, [hand]);
+
   const handleCardSelect = index => () => {
     if (!hand.turn) return;
+    if (index === 0 && hand.cards[0].value === 0) return;
     const foundIndex = cardIndexes.indexOf(index);
     let newIndexes;
     if (foundIndex >= 0) {

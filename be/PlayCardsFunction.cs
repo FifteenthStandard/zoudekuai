@@ -104,6 +104,13 @@ public class PlayCardsFunction : FunctionBase
 
         var playedCardIndexes = playCardsRequest.CardIndexes.OrderByDescending(i => i).Distinct().ToList();
         var playedCards = playedCardIndexes.Select(index => handEntity.Cards[index]).ToList();
+
+        if (!roundEntity.Discard.Any() && !playedCards.Contains(Card.FromValue(0)))
+        {
+            logger.LogWarning("Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, "Must play Ace of Diamonds");
+            return BadRequest("Must play Ace of Diamonds");
+        }
+
         int? rank = null;
         foreach (var cardIndex in playedCardIndexes)
         {

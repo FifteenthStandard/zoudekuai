@@ -15,6 +15,9 @@ public class Card
             Rank = value / 4,
             Value = value,
         };
+
+    public override bool Equals(object obj) => obj is Card && ((Card)obj).Value == Value;
+    public override int GetHashCode() => Value.GetHashCode();
 }
 
 public class Deck
