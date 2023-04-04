@@ -10,22 +10,40 @@ export default class Client {
   constructor(dispatch) {
     this.dispatch = dispatch;
 
-    this.connection = new HubConnectionBuilder()
-      .withUrl(baseUrl)
-      .configureLogging(LogLevel.Warning)
-      .build();
-    this.connection.start();
+    this.connect();
+  }
+
+  async connect() {
+    try {
+      this.connection = new HubConnectionBuilder()
+        .withUrl(baseUrl)
+        .configureLogging(LogLevel.Warning)
+        .build();
+      await this.connection.start();
+    } catch (error) {
+      console.error(`Connection to server failed: ${error}`)
+      this.dispatch({ type: 'connectionUpdate', state: 'disconnected' });
+      return;
+    }
+
+    this.connection.onclose(error => {
+      console.error(`Connection to server lost: ${error}`);
+      this.dispatch({ type: 'disconnected' });
+    })
+
     this.connection.on('gameUpdate', function (game, message, ...args) {
-      if (message) dispatch({ type: 'snackbar', message, args });
-      dispatch({ type: 'gameUpdate', game: JSON.parse(game) });
+      if (message) this.dispatch({ type: 'snackbar', message, args });
+      this.dispatch({ type: 'gameUpdate', game: JSON.parse(game) });
     });
     this.connection.on('roundUpdate', function (round, message, ...args) {
-      if (message) dispatch({ type: 'snackbar', message, args });
-      dispatch({ type: 'roundUpdate', round: JSON.parse(round) });
+      if (message) this.dispatch({ type: 'snackbar', message, args });
+      this.dispatch({ type: 'roundUpdate', round: JSON.parse(round) });
     });
     this.connection.on('handUpdate', function (hand) {
-      dispatch({ type: 'handUpdate', hand: JSON.parse(hand) });
+      this.dispatch({ type: 'handUpdate', hand: JSON.parse(hand) });
     });
+
+    this.dispatch({ type: 'connectionUpdate', state: 'connected' });
   }
 
   async register(name) {

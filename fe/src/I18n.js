@@ -2,6 +2,7 @@ const Strings = {
   'cn': {
     Cancel: 'Cancel 🇨🇳',
     CardsPlayed: name => `${name} took their turn 🇨🇳`,
+    Disconnected: 'Disconnected 🇨🇳',
     GameCode: 'Game Code 🇨🇳',
     GameCodeRequired: 'Game Code is required 🇨🇳',
     JoinGame: 'JG 🇨🇳',
@@ -11,6 +12,7 @@ const Strings = {
     NewGame: 'NG 🇨🇳',
     PlayerJoined: name => `${name} has joined the game! 🇨🇳`,
     Players: 'Players 🇨🇳',
+    Reconnect: 'Reconnect 🇨🇳',
     RoundStarted: 'Round started! 🇨🇳',
     StartGame: 'Start Game 🇨🇳',
     Title: 'ZDK 🇨🇳',
@@ -20,6 +22,7 @@ const Strings = {
   'en': {
     Cancel: 'Cancel',
     CardsPlayed: name => `${name} took their turn`,
+    Disconnected: 'Disconnected',
     GameCode: 'Game Code',
     GameCodeRequired: 'Game Code is required',
     JoinGame: 'Join Game',
@@ -29,6 +32,7 @@ const Strings = {
     NewGame: 'New Game',
     PlayerJoined: name => `${name} has joined the game!`,
     Players: 'Players',
+    Reconnect: 'Reconnect',
     RoundStarted: 'Round started!',
     StartGame: 'Start Game',
     Title: 'Zoudekuai',

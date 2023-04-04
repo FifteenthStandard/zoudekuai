@@ -16,6 +16,7 @@ export function AppProvider({ children }) {
     // Cannot access 'dispatch' before initialization
     snackbar: null,
     client: client || (client = new Client(action => dispatch(action))),
+    clientState: null,
     status: 'Setup',
     lang: 'cn',
     strings: getStrings('cn'),
@@ -44,6 +45,17 @@ export function AppProvider({ children }) {
         return {
           ...state,
           snackbar,
+        };
+      case 'connectionUpdate':
+        return {
+          ...state,
+          clientState: action.state,
+        };
+      case 'reconnect':
+        state.client.connect();
+        return {
+          ...state,
+          clientState: 'connecting',
         };
       case 'setLang':
         const lang = action.lang || state.lang;
