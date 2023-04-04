@@ -104,6 +104,7 @@ public class PlayCardsFunction : FunctionBase
 
         var playedCardIndexes = playCardsRequest.CardIndexes.OrderByDescending(i => i).Distinct().ToList();
         var playedCards = playedCardIndexes.Select(index => handEntity.Cards[index]).ToList();
+        int? rank = null;
         foreach (var cardIndex in playedCardIndexes)
         {
             if (cardIndex < 0 || cardIndex >= handEntity.Cards.Count)
@@ -112,7 +113,13 @@ public class PlayCardsFunction : FunctionBase
                 return BadRequest("Invalid card index");
             }
 
-            // TODO legal move?
+            if (rank != null && handEntity.Cards[cardIndex].Rank != rank)
+            {
+                logger.LogWarning("Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, "Cards don't match");
+                return BadRequest("Cards don't match");
+            }
+
+            rank = handEntity.Cards[cardIndex].Rank;
 
             handEntity.Cards.RemoveAt(cardIndex);
         }

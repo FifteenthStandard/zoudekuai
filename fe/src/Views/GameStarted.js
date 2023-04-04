@@ -77,11 +77,15 @@ export default function GameStarted() {
   const handleCardSelect = index => () => {
     if (!hand.turn) return;
     const foundIndex = cardIndexes.indexOf(index);
-    setCardIndexes(
-      foundIndex >= 0
-        ? cardIndexes.slice(0, foundIndex).concat(cardIndexes.slice(foundIndex + 1))
-        : [...cardIndexes, index]
-    );
+    let newIndexes;
+    if (foundIndex >= 0) {
+      newIndexes = cardIndexes.slice(0, foundIndex).concat(cardIndexes.slice(foundIndex + 1));
+    } else if (cardIndexes.length === 0 || hand.cards[index].rank === hand.cards[cardIndexes[0]].rank) {
+      newIndexes = [...cardIndexes, index];
+    } else {
+      newIndexes = cardIndexes;
+    }
+    setCardIndexes(newIndexes);
   };
 
   const handlePlayCards = () => {
