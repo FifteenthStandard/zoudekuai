@@ -102,8 +102,9 @@ public class PlayCardsFunction : FunctionBase
             throw;
         }
 
-        var playedCards = playCardsRequest.CardIndexes.OrderByDescending(i => i).Distinct().ToList();
-        foreach (var cardIndex in playedCards)
+        var playedCardIndexes = playCardsRequest.CardIndexes.OrderByDescending(i => i).Distinct().ToList();
+        var playedCards = playedCardIndexes.Select(index => handEntity.Cards[index]).ToList();
+        foreach (var cardIndex in playedCardIndexes)
         {
             if (cardIndex < 0 || cardIndex >= handEntity.Cards.Count)
             {
@@ -117,7 +118,8 @@ public class PlayCardsFunction : FunctionBase
         }
         handEntity.Turn = false;
 
-        roundEntity.PlayerCards[roundEntity.TurnIndex] -= playedCards.Count;
+        roundEntity.Discard.Add(playedCards);
+        roundEntity.PlayerCards[roundEntity.TurnIndex] -= playedCardIndexes.Count;
         roundEntity.TurnIndex = (roundEntity.TurnIndex + 1) % roundEntity.PlayerUuids.Count;
 
         var nextPlayer = roundEntity.PlayerUuids[roundEntity.TurnIndex];
@@ -160,7 +162,7 @@ public class PlayCardsFunction : FunctionBase
             Turn = handEntity.Turn,
             Cards = handEntity.Cards
                 .Select(card =>
-                    new HandMessage.Card
+                    new CardMessage
                     {
                         Suit = card.Suit,
                         Rank = card.Rank,
@@ -182,7 +184,7 @@ public class PlayCardsFunction : FunctionBase
             Turn = nextHandEntity.Turn,
             Cards = nextHandEntity.Cards
                 .Select(card =>
-                    new HandMessage.Card
+                    new CardMessage
                     {
                         Suit = card.Suit,
                         Rank = card.Rank,
@@ -212,6 +214,17 @@ public class PlayCardsFunction : FunctionBase
                         Turn = roundEntity.TurnIndex == index,
                         Stole = roundEntity.StoleIndex == index,
                     })
+                .ToList(),
+            Discard = roundEntity.Discard
+                .Select(cards => cards
+                    .Select(card =>
+                        new CardMessage
+                        {
+                            Suit = card.Suit,
+                            Rank = card.Rank,
+                            Value = card.Value,
+                        })
+                    .ToList())
                 .ToList(),
         };
 

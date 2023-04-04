@@ -43,6 +43,7 @@ export function AppProvider({ children }) {
       status: null,
       roundNumber: null,
       players: [],
+      discard: [],
     },
     hand: {
       cards: [],

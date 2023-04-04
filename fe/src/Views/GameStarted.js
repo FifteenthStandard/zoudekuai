@@ -1,4 +1,8 @@
 import {
+  useEffect,
+  useRef,
+} from 'react';
+import {
   IconButton,
   Paper,
   Stack,
@@ -44,6 +48,12 @@ export default function GameStarted() {
 
   const { strings, game, round, hand } = appState;
 
+  const discardRef = useRef(null);
+  useEffect(function () {
+    discardRef.current.lastChild.scrollIntoView();
+    window.scroll(0, 0); // revert entire window scrolling
+  }, [round.discard])
+
   return <>
     <Paper>
       <Stack padding={1} spacing={2} direction="row" sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
@@ -70,8 +80,31 @@ export default function GameStarted() {
         </Paper>
       )
     }
+    <Stack ref={discardRef} direction="column" spacing={1}
+      sx={{ position: 'absolute', top: 300, height: 'calc(100vh - 450px)', width: '100%', overflowY: 'scroll', display: 'flex', alignItems: 'center' }}
+    >
+      {
+        round.discard.map((cards, index) =>
+          <Paper key={index} sx={{ width: 'fit-content' }}>
+            <Stack direction="row" paddingInline={1}>
+              {
+                cards.map(({ suit, value }) =>
+                  <Typography
+                    key={value}
+                    variant="h1"
+                    color={suit % 2 ? '#000' : '#f00'}
+                  >
+                    {CardChars[value]}
+                  </Typography>
+                )
+              }
+            </Stack>
+          </Paper>
+        )
+      }
+    </Stack>
     <Paper sx={{ position: 'absolute', bottom: hand.turn ? 0 : -75, left: '50%', transform: 'translateX(-50%)' }}>
-      <Stack direction="row" paddingInline={1} spacing={2}>
+      <Stack direction="row" paddingInline={1}>
         {
           hand.cards.map(({ suit, value }, index) =>
             <Typography

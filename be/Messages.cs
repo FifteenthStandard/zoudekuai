@@ -46,23 +46,27 @@ public class RoundMessage
 
     [JsonPropertyName("players")]
     public List<Player> Players { get; set; } = new List<Player>();
+
+    [JsonPropertyName("discard")]
+    public List<List<CardMessage>> Discard { get; set; } = new List<List<CardMessage>>();
 }
 
 public class HandMessage
 {
-    public class Card
-    {
-        [JsonPropertyName("suit")]
-        public Suit Suit { get; set; }
-        [JsonPropertyName("rank")]
-        public int Rank { get; set; }
-        [JsonPropertyName("value")]
-        public int Value { get; set; }
-    }
 
     [JsonPropertyName("turn")]
     public bool Turn { get; set; }
 
     [JsonPropertyName("cards")]
-    public List<Card> Cards { get; set; } = new List<Card>();
+    public List<CardMessage> Cards { get; set; } = new List<CardMessage>();
+}
+
+public class CardMessage
+{
+    [JsonPropertyName("suit")]
+    public Suit Suit { get; set; }
+    [JsonPropertyName("rank")]
+    public int Rank { get; set; }
+    [JsonPropertyName("value")]
+    public int Value { get; set; }
 }

@@ -128,7 +128,7 @@ public class StartGameFunction : FunctionBase
                 Turn = hand.Turn,
                 Cards = hand.Cards
                     .Select(card =>
-                        new HandMessage.Card
+                        new CardMessage
                         {
                             Suit = card.Suit,
                             Rank = card.Rank,
@@ -159,6 +159,17 @@ public class StartGameFunction : FunctionBase
                         Turn = roundEntity.TurnIndex == index,
                         Stole = roundEntity.StoleIndex == index,
                     })
+                .ToList(),
+            Discard = roundEntity.Discard
+                .Select(cards => cards
+                    .Select(card =>
+                        new CardMessage
+                        {
+                            Suit = card.Suit,
+                            Rank = card.Rank,
+                            Value = card.Value,
+                        })
+                    .ToList())
                 .ToList(),
         };
 

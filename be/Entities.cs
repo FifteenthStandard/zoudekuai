@@ -80,6 +80,15 @@ public class RoundEntity : ITableEntity
         get => PlayerCards.Serialize();
         set => PlayerCards = value.Deserialize<int>();
     }
+    [IgnoreDataMember]
+    public List<List<Card>> Discard { get; set; } = new List<List<Card>>();
+    public string DiscardStr
+    {
+        get => Discard.Select(cards => cards.Select(card => card.Value)).Serialize();
+        set => Discard = value.Deserialize<List<int>>()
+            .Select(cards => cards.Select(Card.FromValue).ToList())
+            .ToList();
+    }
 }
 
 public class HandEntity : ITableEntity
