@@ -51,6 +51,10 @@ export default class Client {
   }
 
   async register(name) {
+    while (this.connection.state === 'Connecting') {
+      console.log('Connection still connecting in attempt to register. Waiting...');
+      await this.delay();
+    }
     await this.post('/register', { name, connectionId: this.connection.connectionId });
   }
 
@@ -86,9 +90,13 @@ export default class Client {
         throw new Error(`${resp.status} ${resp.statusText}: ${await resp.text()}`);
       } else {
         console.warn(`${resp.status} ${resp.statusText}: ${await resp.text()}`);
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await this.delay();
       }
     }
     throw new Error('Request failed after 5 attempts');
+  }
+
+  async delay() {
+    await new Promise(resolve => setTimeout(resolve, 5000));
   }
 }
