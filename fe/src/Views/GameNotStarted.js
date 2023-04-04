@@ -1,9 +1,13 @@
 import {
   Button,
+  IconButton,
   Paper,
   Stack,
   Typography,
 } from '@mui/material';
+import {
+  Share,
+} from '@mui/icons-material';
 
 import {
   useAppState,
@@ -14,23 +18,35 @@ export default function GameNotStarted() {
   const appState = useAppState();
   const appDispatch = useAppDispatch();
 
-  const strings = appState.strings;
+  const { strings, game } = appState;
 
-  const enoughPlayers = appState.game.players.length >= 4;
+  const enoughPlayers = game.players.length >= 4;
 
   const handleStartGame = () => {
     appDispatch({ type: 'startGame' });
   };
 
   return <>
-    <Paper onClick={() => navigator.clipboard.writeText(appState.game.gameCode)}>
-      <Typography padding={1} align="center">{strings.GameCode} {appState.game.gameCode}</Typography>
-    </Paper>
+    {
+      game.gameCode && <Paper>
+        <Stack padding={1} spacing={2} direction="row" sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+          <Typography fontSize={16}>
+            {strings.GameCode}
+          </Typography>
+          <Typography fontSize={16}>
+            {game.gameCode}
+          </Typography>
+          <IconButton onClick={() => navigator.clipboard.writeText(game.gameCode)}>
+            <Share />
+          </IconButton>
+        </Stack>
+      </Paper>
+    }
     <Stack spacing={2} sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
       <Typography align="center" color="text.secondary">
         {strings.Players}
       </Typography>
-      {appState.game.players.map((player, ind) =>
+      {game.players.map((player, ind) =>
         <Paper key={`${ind}-${player}`}>
           <Typography padding={1} align="center">{player}</Typography>
         </Paper>

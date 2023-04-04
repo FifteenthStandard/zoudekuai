@@ -1,4 +1,5 @@
 import {
+  IconButton,
   Paper,
   Stack,
   Typography,
@@ -6,6 +7,7 @@ import {
 import {
   HourglassTop,
   Report,
+  Share,
 } from '@mui/icons-material';
 
 import {
@@ -43,8 +45,18 @@ export default function GameStarted() {
   const { strings, game, round, hand } = appState;
 
   return <>
-    <Paper onClick={() => navigator.clipboard.writeText(game.gameCode)}>
-      <Typography padding={1} align="center">{strings.GameCode} {game.gameCode}</Typography>
+    <Paper>
+      <Stack padding={1} spacing={2} direction="row" sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+        <Typography fontSize={16}>
+          {strings.GameCode}
+        </Typography>
+        <Typography fontSize={16}>
+          {game.gameCode}
+        </Typography>
+        <IconButton onClick={() => navigator.clipboard.writeText(game.gameCode)}>
+          <Share />
+        </IconButton>
+      </Stack>
     </Paper>
     {
       round.players.map((player, index) =>
