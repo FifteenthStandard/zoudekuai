@@ -28,19 +28,25 @@ export default function GameNotStarted() {
 
   return <>
     {
-      game.gameCode && <Paper>
-        <Stack padding={1} spacing={2} direction="row" sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-          <Typography fontSize={16}>
-            {strings.GameCode}
+      game.gameCode
+        ? <Paper>
+            <Stack padding={1} spacing={2} direction="row" sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+              <Typography fontSize={16}>
+                {strings.GameCode}
+              </Typography>
+              <Typography fontSize={16}>
+                {game.gameCode}
+              </Typography>
+              <IconButton onClick={() => navigator.clipboard.writeText(game.gameCode)}>
+                <Share />
+              </IconButton>
+            </Stack>
+          </Paper>
+        : <Paper>
+          <Typography padding={1} fontSize={16} align="center">
+            Creating game...
           </Typography>
-          <Typography fontSize={16}>
-            {game.gameCode}
-          </Typography>
-          <IconButton onClick={() => navigator.clipboard.writeText(game.gameCode)}>
-            <Share />
-          </IconButton>
-        </Stack>
-      </Paper>
+        </Paper>
     }
     <Stack spacing={2} sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
       <Typography align="center" color="text.secondary">

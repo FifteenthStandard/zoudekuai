@@ -83,6 +83,13 @@ export function AppProvider({ children }) {
         return {
           ...state,
           isHost: true,
+          status: 'NotStarted',
+          game: {
+            gameCode: null,
+            host: state.name,
+            status: 'NotStarted',
+            players: [ action.name ],
+          },
         };
       case 'joinGame':
         localStorage.setItem('zoudekuai:name', action.name);
@@ -90,13 +97,29 @@ export function AppProvider({ children }) {
         return {
           ...state,
           isHost: false,
+          status: 'NotStarted',
+          game: {
+            gameCode: action.gameCode,
+            host: null,
+            status: 'NotStarted',
+            players: [ ],
+          },
         };
       case 'startGame':
         state.client.startGame(state.game.gameCode);
-        return state;
+        return {
+          ...state,
+          status: 'Started',
+        };
       case 'playCards':
         state.client.playCards(state.game.gameCode, action.cardIndexes);
-        return state;
+        return {
+          ...state,
+          hand: {
+            ...state.hand,
+            turn: false,
+          },
+        };
       case 'rejoin':
         return {
           ...state,
