@@ -129,6 +129,7 @@ export function AppProvider({ children }) {
           game: action.game,
         };
       case 'gameUpdate':
+        localStorage.setItem('zoudekuai:gameCode', action.game.gameCode);
         return {
           ...state,
           status: action.game.status,

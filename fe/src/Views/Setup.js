@@ -30,8 +30,6 @@ export default function Start() {
 
   const strings = appState.strings;
 
-  const [submitted, setSubmitted] = useState(false);
-
   const [name, setName] = useState(getInitialValue('name', ''));
   const [nameError, setNameError] = useState('');
 
@@ -41,7 +39,6 @@ export default function Start() {
       return;
     }
     appDispatch({ type: 'newGame', name });
-    setSubmitted(true);
   };
 
   const [joinGameOpen, setJoinGameOpen] = useState(false);
@@ -52,7 +49,6 @@ export default function Start() {
     }
     setJoinGameOpen(true);
   };
-  const handleJoinGameClose = () => setJoinGameOpen(false);
 
   const [gameCode, setGameCode] = useState('');
   const [gameCodeError, setGameCodeError] = useState('');
@@ -71,73 +67,100 @@ export default function Start() {
       return;
     }
     appDispatch({ type: 'joinGame', name, gameCode });
-    setSubmitted(true);
+  };
+
+  const storedGameCode = getInitialValue('gameCode', '');
+  const [rejoinGameOpen, setRejoinGameOpen] = useState(!!storedGameCode);
+
+  const handleRejoinGameSubmit = (ev) => {
+    ev.preventDefault();
+    appDispatch({ type: 'joinGame', name, gameCode: storedGameCode });
   };
 
   const center = {position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)'};
 
-  return <>
-    <Backdrop open={submitted} sx={{ color: '#fff', zIndex: 1000000 }}><CircularProgress  /></Backdrop>
-    <Paper sx={{ width: '80vw', margin: 'auto', ...center }}>
-      <Stack spacing={2} padding={2}>
-        <Typography variant="h3" textAlign="center">{strings.Title}</Typography>
-        <ToggleButtonGroup
-          exclusive
-          value={appState.lang}
-          onChange={(_, lang) => appDispatch({ type: 'setLang', lang })}
-          color="primary"
-          fullWidth
-        >
-          <ToggleButton value="cn">中文</ToggleButton>
-          <ToggleButton value="en">EN</ToggleButton>
-        </ToggleButtonGroup>
-        <TextField
-          label={strings.Name}
-          required
-          value={name}
-          onChange={ev => setName(ev.target.value) || setNameError('')}
-          error={!!nameError}
-          helperText={nameError}
-          fullWidth
-          autoFocus
-        />
-        <ButtonGroup fullWidth variant="contained">
-          <Button onClick={handleNewGame}>
-            {strings.NewGame}
-          </Button>
-          <Button onClick={handleJoinGameOpen}>
-            {strings.JoinGame}
-          </Button>
-        </ButtonGroup>
-      </Stack>
-      <Dialog
-        open={joinGameOpen}
-        onClose={handleJoinGameClose}
+  return <Paper sx={{ width: '80vw', margin: 'auto', ...center }}>
+    <Stack spacing={2} padding={2}>
+      <Typography variant="h3" textAlign="center">{strings.Title}</Typography>
+      <ToggleButtonGroup
+        exclusive
+        value={appState.lang}
+        onChange={(_, lang) => appDispatch({ type: 'setLang', lang })}
+        color="primary"
+        fullWidth
       >
-        <form onSubmit={handleJoinGameSubmit}>
-          <DialogTitle>{strings.JoinGame}</DialogTitle>
-          <DialogContent>
-            <Stack spacing={2}>
-              <DialogContentText>{strings.JoinGameDialog}</DialogContentText>
-              <TextField
-                label={strings.GameCode}
-                required
-                inputMode="number"
-                value={gameCode}
-                onChange={handleCodeChange}
-                autoFocus
-                error={!!gameCodeError}
-                helperText={gameCodeError}
-                />
-            </Stack>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleJoinGameClose}>{strings.Cancel}</Button>
-            <Button onClick={handleJoinGameSubmit}>{strings.JoinGame}</Button>
-            <input type="submit" hidden />
-          </DialogActions>
-        </form>
-      </Dialog>
-    </Paper>
-  </>
+        <ToggleButton value="cn">中文</ToggleButton>
+        <ToggleButton value="en">EN</ToggleButton>
+      </ToggleButtonGroup>
+      <TextField
+        label={strings.Name}
+        required
+        value={name}
+        onChange={ev => setName(ev.target.value) || setNameError('')}
+        error={!!nameError}
+        helperText={nameError}
+        fullWidth
+        autoFocus
+      />
+      <ButtonGroup fullWidth variant="contained">
+        <Button onClick={handleNewGame}>
+          {strings.NewGame}
+        </Button>
+        <Button onClick={handleJoinGameOpen}>
+          {strings.JoinGame}
+        </Button>
+      </ButtonGroup>
+    </Stack>
+    <Dialog
+      open={joinGameOpen}
+      onClose={() => setJoinGameOpen(false)}
+    >
+      <form onSubmit={handleJoinGameSubmit}>
+        <DialogTitle>{strings.JoinGame}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2}>
+            <DialogContentText>{strings.JoinGameDialog}</DialogContentText>
+            <TextField
+              label={strings.GameCode}
+              required
+              inputMode="number"
+              value={gameCode}
+              onChange={handleCodeChange}
+              autoFocus
+              error={!!gameCodeError}
+              helperText={gameCodeError}
+              />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setJoinGameOpen(false)}>{strings.Cancel}</Button>
+          <Button onClick={handleJoinGameSubmit}>{strings.JoinGame}</Button>
+          <input type="submit" hidden />
+        </DialogActions>
+      </form>
+    </Dialog>
+    <Dialog
+      open={rejoinGameOpen}
+      onClose={() => setRejoinGameOpen(false)}
+    >
+      <form onSubmit={handleJoinGameSubmit}>
+        <DialogTitle>{strings.RejoinGame}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2}>
+            <DialogContentText>{strings.RejoinGameDialog}</DialogContentText>
+            <TextField
+              label={strings.GameCode}
+              value={storedGameCode}
+              disabled
+              />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRejoinGameOpen(false)}>{strings.Cancel}</Button>
+          <Button onClick={handleRejoinGameSubmit}>{strings.RejoinGame}</Button>
+          <input type="submit" hidden />
+        </DialogActions>
+      </form>
+    </Dialog>
+  </Paper>
 };
