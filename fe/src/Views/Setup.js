@@ -56,6 +56,14 @@ export default function Start() {
 
   const [gameCode, setGameCode] = useState('');
   const [gameCodeError, setGameCodeError] = useState('');
+
+  const handleCodeChange = (ev) => {
+    if (ev.target.value.match(/^\d{0,4}$/)) {
+      setGameCode(ev.target.value);
+      setGameCodeError('');
+    }
+  };
+
   const handleJoinGameSubmit = (ev) => {
     ev.preventDefault();
     if (!gameCode) {
@@ -114,8 +122,9 @@ export default function Start() {
               <TextField
                 label={strings.GameCode}
                 required
+                inputMode="number"
                 value={gameCode}
-                onChange={ev => setGameCode(ev.target.value) || setGameCodeError('')}
+                onChange={handleCodeChange}
                 autoFocus
                 error={!!gameCodeError}
                 helperText={gameCodeError}

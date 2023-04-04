@@ -31,7 +31,7 @@ public class NewGameFunction : FunctionBase
 
         var host = await GetPlayerFromRequest(req, table);
 
-        var gameCode = Guid.NewGuid().ToString().Substring(0, 4);
+        var gameCode = new Random().Next(9999).ToString("D4");
 
         var gameEntity = new GameEntity
         {
