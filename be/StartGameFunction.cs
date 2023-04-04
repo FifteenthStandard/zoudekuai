@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
+using Microsoft.Extensions.Logging;
 
 public class StartGameFunction : FunctionBase
 {
@@ -22,12 +23,13 @@ public class StartGameFunction : FunctionBase
     public async Task<IActionResult> StartGame(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", "options")] HttpRequest req,
         [Table("zoudekuai")] TableClient table,
-        [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRMessage> messages)
+        [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRMessage> messages,
+        ILogger logger)
     {
         SetCorsHeaders(req);
         if (IsCorsPreflight(req)) return Ok();
 
-        Console.WriteLine($"Request to start a game");
+        logger.LogInformation($"Request to start a game");
 
         var player = await GetPlayerFromRequest(req, table);
 
@@ -37,37 +39,36 @@ public class StartGameFunction : FunctionBase
         GameEntity gameEntity;
         try
         {
-            Console.WriteLine($"Request to retrieve a game with Game Code {gameCode} by {player.Uuid} is processing");
+            logger.LogInformation("Request to retrieve a game with Game Code {gameCode} by {uuid} is processing", gameCode, player.Uuid);
             gameEntity = await table.GetEntityAsync<GameEntity>(GameEntity.GamePartitionKey, gameCode);
             if (gameEntity == null)
             {
-                Console.WriteLine($"Request to retrieve a game with Game Code {gameCode} by {player.Uuid} failed: Game not found");
+                logger.LogWarning("Request to retrieve a game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, "Game not found");
                 return BadRequest("Invalid gameCode");
             }
-            Console.WriteLine($"Request to retrieve a game with Game Code {gameCode} by {player.Uuid} was successful");
+            logger.LogInformation("Request to retrieve a game with Game Code {gameCode} by {uuid} was successful", gameCode, player.Uuid);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Request to retrieve a game with Game Code {gameCode} by {player.Uuid} failed: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
+            logger.LogError(ex, "Request to retrieve a game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, ex.Message);
             throw;
         }
 
         if (player.Uuid != gameEntity.HostUuid)
         {
-            Console.WriteLine($"Request to start a game with Game Code {gameCode} by {player.Uuid} failed: Not the host");
+            logger.LogWarning("Request to start a game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, "Not the host");
             return BadRequest("Not the host");
         }
 
         if (gameEntity.PlayerUuids.Count < 4)
         {
-            Console.WriteLine($"Request to start a game with Game Code {gameCode} by {player.Uuid} failed: Not enough players");
+            logger.LogWarning("Request to start a game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, "Not enough players");
             return BadRequest("Not enough players");
         }
 
         if (gameEntity.Status != GameStatus.NotStarted)
         {
-            Console.WriteLine($"Request to start a game with Game Code {gameCode} by {player.Uuid} failed: Game already started");
+            logger.LogWarning("Request to start a game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, "Game already started");
             return BadRequest("Game already started");
         }
 
@@ -106,7 +107,7 @@ public class StartGameFunction : FunctionBase
 
         try
         {
-            Console.WriteLine($"Request to start a game with Game Code {gameCode} by {player.Uuid} is processing");
+            logger.LogInformation("Request to start a game with Game Code {gameCode} by {uuid} is processing", gameCode, player.Uuid);
             foreach (var handEntity in handEntities)
             {
                 await table.AddEntityAsync(handEntity);
@@ -116,8 +117,7 @@ public class StartGameFunction : FunctionBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Request to start a game with Game Code {gameCode} by {player.Uuid} failed: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
+            logger.LogError(ex, "Request to start a game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, ex.Message);
             throw;
         }
 
@@ -186,7 +186,7 @@ public class StartGameFunction : FunctionBase
                 Arguments = new [] { JsonSerializer.Serialize(gameMessage) },
             });
 
-        Console.WriteLine($"Request to start a game with Game Code {gameCode} by {player.Uuid} was successful");
+        logger.LogInformation("Request to start a game with Game Code {gameCode} by {uuid} was successful", gameCode, player.Uuid);
 
         return Accepted();
     }

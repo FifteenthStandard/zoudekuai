@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
+using Microsoft.Extensions.Logging;
 
 public class NewGameFunction : FunctionBase
 {
@@ -22,12 +23,13 @@ public class NewGameFunction : FunctionBase
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", "options")] HttpRequest req,
         [Table("zoudekuai")] TableClient table,
         [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRGroupAction> actions,
-        [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRMessage> messages)
+        [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRMessage> messages,
+        ILogger logger)
     {
         SetCorsHeaders(req);
         if (IsCorsPreflight(req)) return Ok();
 
-        Console.WriteLine($"Request to create a new game");
+        logger.LogInformation("Request to create a new game");
 
         var host = await GetPlayerFromRequest(req, table);
 
@@ -46,13 +48,12 @@ public class NewGameFunction : FunctionBase
 
         try
         {
-            Console.WriteLine($"Request to create a new game with Game Code {gameCode} by {host.Uuid} is processing");
+            logger.LogInformation("Request to create a new game with Game Code {gameCode} by {uuid} is processing", gameCode, host.Uuid);
             await table.AddEntityAsync(gameEntity);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Request to create new game with Game Code {gameCode} by {host.Uuid} failed: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
+            logger.LogError(ex, "Request to create new game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, host.Uuid, ex.Message);
             throw;
         }
 
@@ -79,7 +80,7 @@ public class NewGameFunction : FunctionBase
                 Arguments = new [] { JsonSerializer.Serialize(gameMessage) },
             });
 
-        Console.WriteLine($"Request to create new game with Game Code {gameCode} by {host.Uuid} was successful");
+        logger.LogInformation("Request to create new game with Game Code {gameCode} by {uuid} was successful", gameCode, host.Uuid);
 
         var newGameResponse = new NewGameResponse
         {

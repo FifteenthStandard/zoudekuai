@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
+using Microsoft.Extensions.Logging;
 
 public class PlayCardsFunction : FunctionBase
 {
@@ -26,12 +27,13 @@ public class PlayCardsFunction : FunctionBase
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", "options")] HttpRequest req,
         [Table("zoudekuai")] TableClient table,
         [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRGroupAction> actions,
-        [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRMessage> messages)
+        [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRMessage> messages,
+        ILogger logger)
     {
         SetCorsHeaders(req);
         if (IsCorsPreflight(req)) return Ok();
 
-        Console.WriteLine($"Request to play cards");
+        logger.LogInformation("Request to play cards");
 
         var player = await GetPlayerFromRequest(req, table);
 
@@ -41,19 +43,18 @@ public class PlayCardsFunction : FunctionBase
         GameEntity gameEntity;
         try
         {
-            Console.WriteLine($"Request to retrieve a game with Game Code {gameCode} by {player.Uuid} is processing");
+            logger.LogInformation("Request to retrieve a game with Game Code {gameCode} by {uuid} is processing", gameCode, player.Uuid);
             gameEntity = await table.GetEntityAsync<GameEntity>(GameEntity.GamePartitionKey, gameCode);
             if (gameEntity == null)
             {
-                Console.WriteLine($"Request to retrieve a game with Game Code {gameCode} by {player.Uuid} failed: Game not found");
+                logger.LogWarning("Request to retrieve a game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, "Game not found");
                 return BadRequest();
             }
-            Console.WriteLine($"Request to retrieve a game with Game Code {gameCode} by {player.Uuid} was successful");
+            logger.LogInformation("Request to retrieve a game with Game Code {gameCode} by {uuid} was successful", gameCode, player.Uuid);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Request to retrieve a game with Game Code {gameCode} by {player.Uuid} failed: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
+            logger.LogError(ex, "Request to retrieve a game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, ex.Message);
             throw;
         }
 
@@ -62,44 +63,42 @@ public class PlayCardsFunction : FunctionBase
         RoundEntity roundEntity;
         try
         {
-            Console.WriteLine($"Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} by {player.Uuid} is processing");
+            logger.LogInformation("Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} is processing", gameCode, roundNumber, player.Uuid);
             roundEntity = await table.GetEntityAsync<RoundEntity>(gameCode, roundNumber.ToString());
             if (roundEntity == null)
             {
-                Console.WriteLine($"Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} by {player.Uuid} failed: Round not found");
+                logger.LogWarning("Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, "Round not found");
                 return BadRequest();
             }
-            Console.WriteLine($"Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} by {player.Uuid} was successful");
+            logger.LogInformation("Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} was successful", gameCode, roundNumber, player.Uuid);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} by {player.Uuid} failed: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
+            logger.LogError(ex, "Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, ex.Message);
             throw;
         }
 
         if (roundEntity.PlayerUuids[roundEntity.TurnIndex] != player.Uuid)
         {
-            Console.WriteLine($"Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {player.Uuid} failed: Not your turn");
+            logger.LogWarning("Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, "Not your turn");
             return BadRequest("Not your turn");
         }
 
         HandEntity handEntity;
         try
         {
-            Console.WriteLine($"Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {player.Uuid} is processing");
+            logger.LogInformation("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {uuid} is processing", gameCode, roundNumber, player.Uuid);
             handEntity = await table.GetEntityAsync<HandEntity>(gameCode, $"{roundNumber}_{player.Uuid}");
             if (handEntity == null)
             {
-                Console.WriteLine($"Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {player.Uuid} failed: Hand not found");
+                logger.LogWarning("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, "Hand not found");
                 return BadRequest();
             }
-            Console.WriteLine($"Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {player.Uuid} was successful");
+            logger.LogInformation("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {uuid} was successful", gameCode, roundNumber, player.Uuid);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {player.Uuid} failed: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
+            logger.LogError(ex, "Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, ex.Message);
             throw;
         }
 
@@ -108,7 +107,7 @@ public class PlayCardsFunction : FunctionBase
         {
             if (cardIndex < 0 || cardIndex >= handEntity.Cards.Count)
             {
-                Console.WriteLine($"Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {player.Uuid} failed: Invalid card index");
+                logger.LogWarning("Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, "Invalid card index");
                 return BadRequest("Invalid card index");
             }
 
@@ -125,19 +124,18 @@ public class PlayCardsFunction : FunctionBase
         HandEntity nextHandEntity;
         try
         {
-            Console.WriteLine($"Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} for {nextPlayer} is processing");
+            logger.LogInformation("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} for {nextPlayer} is processing", gameCode, roundNumber, nextPlayer);
             nextHandEntity = await table.GetEntityAsync<HandEntity>(gameCode, $"{roundNumber}_{nextPlayer}");
             if (nextHandEntity == null)
             {
-                Console.WriteLine($"Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {nextPlayer} failed: Hand not found");
+                logger.LogWarning("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {nextPlayer} failed: {reason}", gameCode, roundNumber, nextPlayer, "Hand not found");
                 return BadRequest();
             }
-            Console.WriteLine($"Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {nextPlayer} was successful");
+            logger.LogInformation("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {nextPlayer} was successful", gameCode, roundNumber, nextPlayer);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {nextPlayer} failed: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
+            logger.LogError(ex, "Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {nextPlayer} failed: {reason}", gameCode, roundNumber, nextPlayer, ex.Message);
             throw;
         }
 
@@ -145,15 +143,15 @@ public class PlayCardsFunction : FunctionBase
 
         try
         {
-            Console.WriteLine($"Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {player.Uuid} is processing");
+            logger.LogInformation("Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} is processing", gameCode, roundNumber, player.Uuid);
             await table.UpsertEntityAsync(handEntity);
             await table.UpsertEntityAsync(nextHandEntity);
             await table.UpsertEntityAsync(roundEntity);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {player.Uuid} failed: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
+            logger.LogError(ex, "Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, ex.Message);
+            logger.LogError(ex.StackTrace);
             throw;
         }
 
@@ -225,7 +223,7 @@ public class PlayCardsFunction : FunctionBase
                 Arguments = new [] { JsonSerializer.Serialize(roundMessage), "CardsPlayed", player.Name },
             });
 
-        Console.WriteLine($"Request to join an existing game with Game Code {gameCode} by {player.Uuid} was successful");
+        logger.LogInformation("Request to join an existing game with Game Code {gameCode} by {uuid} was successful", gameCode, player.Uuid);
 
         return Accepted();
     }

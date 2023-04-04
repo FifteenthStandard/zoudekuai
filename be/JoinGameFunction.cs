@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
+using Microsoft.Extensions.Logging;
 
 public class JoinGameFunction : FunctionBase
 {
@@ -23,12 +24,13 @@ public class JoinGameFunction : FunctionBase
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", "options")] HttpRequest req,
         [Table("zoudekuai")] TableClient table,
         [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRGroupAction> actions,
-        [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRMessage> messages)
+        [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRMessage> messages,
+        ILogger logger)
     {
         SetCorsHeaders(req);
         if (IsCorsPreflight(req)) return Ok();
 
-        Console.WriteLine($"Request to join an existing game");
+        logger.LogInformation("Request to join an existing game");
 
         var player = await GetPlayerFromRequest(req, table);
 
@@ -38,19 +40,18 @@ public class JoinGameFunction : FunctionBase
         GameEntity gameEntity;
         try
         {
-            Console.WriteLine($"Request to retrieve an existing game with Game Code {gameCode} by {player.Uuid} is processing");
+            logger.LogInformation("Request to retrieve an existing game with Game Code {gameCode} by {uuid} is processing", gameCode, player.Uuid);
             gameEntity = await table.GetEntityAsync<GameEntity>(GameEntity.GamePartitionKey, gameCode);
             if (gameEntity == null)
             {
-                Console.WriteLine($"Request to retrieve an existing game with Game Code {gameCode} by {player.Uuid} failed: Game not found");
+                logger.LogWarning("Request to retrieve an existing game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, "Game not found");
                 return BadRequest();
             }
-            Console.WriteLine($"Request to retrieve an existing game with Game Code {gameCode} by {player.Uuid} was successful");
+            logger.LogInformation("Request to retrieve an existing game with Game Code {gameCode} by {uuid} was successful", gameCode, player.Uuid);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Request to retrieve an existing game with Game Code {gameCode} by {player.Uuid} failed: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
+            logger.LogError(ex, "Request to retrieve an existing game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, ex.Message);
             throw;
         }
 
@@ -86,13 +87,12 @@ public class JoinGameFunction : FunctionBase
             gameEntity.PlayerNames.Add(player.Name);
             try
             {
-                Console.WriteLine($"Request to join an existing game with Game Code {gameCode} by {player.Uuid} is processing");
+                logger.LogInformation("Request to join an existing game with Game Code {gameCode} by {uuid} is processing", gameCode, player.Uuid);
                 await table.UpsertEntityAsync(gameEntity);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Request to join an existing game with Game Code {gameCode} by {player.Uuid} failed: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                logger.LogWarning(ex, "Request to join an existing game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, ex.Message);
                 throw;
             }
 
@@ -113,7 +113,7 @@ public class JoinGameFunction : FunctionBase
                 });
         }
 
-        Console.WriteLine($"Request to join an existing game with Game Code {gameCode} by {player.Uuid} was successful");
+        logger.LogInformation("Request to join an existing game with Game Code {gameCode} by {uuid} was successful", gameCode, player.Uuid);
 
         return Accepted();
     }

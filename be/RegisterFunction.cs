@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
+using Microsoft.Extensions.Logging;
 
 public class RegisterFunction : FunctionBase
 {
@@ -23,14 +24,15 @@ public class RegisterFunction : FunctionBase
     public async Task<IActionResult> Register(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", "options")] HttpRequest req,
         [Table("zoudekuai")] TableClient table,
-        [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRGroupAction> actions)
+        [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRGroupAction> actions,
+        ILogger logger)
     {
         SetCorsHeaders(req);
         if (IsCorsPreflight(req)) return Ok();
 
         var registerRequest = await JsonSerializer.DeserializeAsync<RegisterRequest>(req.Body);
 
-        Console.WriteLine($"Request to register as {registerRequest.Name} connected via {registerRequest.ConnectionId}");
+        logger.LogInformation("Request to register as {name} connected via {connectionId}", registerRequest.Name, registerRequest.ConnectionId);
 
         var uuid = GetUuidFromRequest(req);
 
@@ -43,13 +45,12 @@ public class RegisterFunction : FunctionBase
 
         try
         {
-            Console.WriteLine($"Request to register as {registerRequest.Name} connected via {registerRequest.ConnectionId} by {uuid} is processing");
+            logger.LogInformation("Request to register as {name} connected via {connectionId} by {uuid} is processing", registerRequest.Name, registerRequest.ConnectionId, uuid);
             await table.UpsertEntityAsync(playerEntity);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Request to register as {registerRequest.Name} connected via {registerRequest.ConnectionId} by {uuid} failed: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
+            logger.LogError(ex, "Request to register as {name} connected via {connectionId} by {uuid} failed: {reason}", registerRequest.Name, registerRequest.ConnectionId, uuid, ex.Message);
             throw;
         }
 
@@ -60,7 +61,7 @@ public class RegisterFunction : FunctionBase
             ConnectionId = registerRequest.ConnectionId,
         });
 
-        Console.WriteLine($"Request to register as {registerRequest.Name} connected via {registerRequest.ConnectionId} by {uuid} was successful");
+        logger.LogInformation("Request to register as {name} connected via {connectionId} by {uuid} was successful", registerRequest.Name, registerRequest.ConnectionId, uuid);
 
         return Accepted();
     }
