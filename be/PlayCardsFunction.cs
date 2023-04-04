@@ -111,6 +111,12 @@ public class PlayCardsFunction : FunctionBase
             return BadRequest("Must play Ace of Diamonds");
         }
 
+        if (roundEntity.Discard.Any() && playedCards.Count != roundEntity.Discard.Last().Count)
+        {
+            logger.LogWarning("Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, "Count must match current play");
+            return BadRequest("Count must match current play");
+        }
+
         int? rank = null;
         foreach (var cardIndex in playedCardIndexes)
         {

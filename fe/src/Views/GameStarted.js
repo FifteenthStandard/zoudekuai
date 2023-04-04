@@ -93,6 +93,8 @@ export default function GameStarted() {
     setCardIndexes(newIndexes);
   };
 
+  const canPlayCards = round.discard.length === 0 || cardIndexes.length === round.discard[round.discard.length-1].length;
+
   const handlePlayCards = () => {
     if (!hand.turn || cardIndexes.length === 0) return;
     appDispatch({ type: 'playCards', cardIndexes });
@@ -167,7 +169,7 @@ export default function GameStarted() {
       hand.turn &&
         <Button
           sx={{ position: 'absolute', bottom: 100, left: '50%', transform: 'translateX(-50%)' }}
-          disabled={cardIndexes.length === 0}
+          disabled={!canPlayCards}
           onClick={handlePlayCards}
         >
           Play
