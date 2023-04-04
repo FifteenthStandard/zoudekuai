@@ -103,7 +103,7 @@ export function AppProvider({ children }) {
             gameCode: action.gameCode,
             host: null,
             status: 'NotStarted',
-            players: [ ],
+            players: [],
           },
         };
       case 'startGame':

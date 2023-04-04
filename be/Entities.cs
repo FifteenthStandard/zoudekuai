@@ -89,6 +89,13 @@ public class RoundEntity : ITableEntity
             .Select(cards => cards.Select(Card.FromValue).ToList())
             .ToList();
     }
+    [IgnoreDataMember]
+    public List<int> Positions { get; set; } = new List<int>();
+    public string PositionsStr
+    {
+        get => Positions.Serialize();
+        set => Positions = value.Deserialize<int>();
+    }
 }
 
 public class HandEntity : ITableEntity

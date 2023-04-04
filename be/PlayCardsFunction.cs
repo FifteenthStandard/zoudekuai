@@ -120,40 +120,15 @@ public class PlayCardsFunction : FunctionBase
 
         roundEntity.Discard.Add(playedCards);
         roundEntity.PlayerCards[roundEntity.TurnIndex] -= playedCardIndexes.Count;
-        roundEntity.TurnIndex = (roundEntity.TurnIndex + 1) % roundEntity.PlayerUuids.Count;
-
-        var nextPlayer = roundEntity.PlayerUuids[roundEntity.TurnIndex];
-        HandEntity nextHandEntity;
-        try
-        {
-            logger.LogInformation("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} for {nextPlayer} is processing", gameCode, roundNumber, nextPlayer);
-            nextHandEntity = await table.GetEntityAsync<HandEntity>(gameCode, $"{roundNumber}_{nextPlayer}");
-            if (nextHandEntity == null)
-            {
-                logger.LogWarning("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {nextPlayer} failed: {reason}", gameCode, roundNumber, nextPlayer, "Hand not found");
-                return BadRequest();
-            }
-            logger.LogInformation("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {nextPlayer} was successful", gameCode, roundNumber, nextPlayer);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {nextPlayer} failed: {reason}", gameCode, roundNumber, nextPlayer, ex.Message);
-            throw;
-        }
-
-        nextHandEntity.Turn = true;
 
         try
         {
             logger.LogInformation("Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} is processing", gameCode, roundNumber, player.Uuid);
             await table.UpsertEntityAsync(handEntity);
-            await table.UpsertEntityAsync(nextHandEntity);
-            await table.UpsertEntityAsync(roundEntity);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, ex.Message);
-            logger.LogError(ex.StackTrace);
             throw;
         }
 
@@ -179,27 +154,85 @@ public class PlayCardsFunction : FunctionBase
                 Arguments = new [] { JsonSerializer.Serialize(handMessage) },
             });
 
-        var nextHandMessage = new HandMessage
-        {
-            Turn = nextHandEntity.Turn,
-            Cards = nextHandEntity.Cards
-                .Select(card =>
-                    new CardMessage
-                    {
-                        Suit = card.Suit,
-                        Rank = card.Rank,
-                        Value = card.Value,
-                    })
-                .ToList(),
-        };
+        if (!handEntity.Cards.Any()) roundEntity.Positions.Add(roundEntity.TurnIndex);
 
-        await messages.AddAsync(
-            new SignalRMessage
+        if (roundEntity.Positions.Count == roundEntity.PlayerUuids.Count - 1)
+        {
+            roundEntity.Positions.Add(roundEntity.PlayerCards.FindIndex(cards => cards > 0));
+            roundEntity.TurnIndex = -1;
+            roundEntity.Status = RoundStatus.Finished;
+        }
+        else
+        {
+            do {
+                roundEntity.TurnIndex = (roundEntity.TurnIndex + 1) % roundEntity.PlayerUuids.Count;
+            } while (roundEntity.PlayerCards[roundEntity.TurnIndex] == 0);
+
+            var nextPlayer = roundEntity.PlayerUuids[roundEntity.TurnIndex];
+            HandEntity nextHandEntity;
+            try
             {
-                Target = "handUpdate",
-                GroupName = nextHandEntity.Uuid,
-                Arguments = new [] { JsonSerializer.Serialize(nextHandMessage) },
-            });
+                logger.LogInformation("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} for {nextPlayer} is processing", gameCode, roundNumber, nextPlayer);
+                nextHandEntity = await table.GetEntityAsync<HandEntity>(gameCode, $"{roundNumber}_{nextPlayer}");
+                if (nextHandEntity == null)
+                {
+                    logger.LogWarning("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {nextPlayer} failed: {reason}", gameCode, roundNumber, nextPlayer, "Hand not found");
+                    return BadRequest();
+                }
+                logger.LogInformation("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {nextPlayer} was successful", gameCode, roundNumber, nextPlayer);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {nextPlayer} failed: {reason}", gameCode, roundNumber, nextPlayer, ex.Message);
+                throw;
+            }
+
+            nextHandEntity.Turn = true;
+
+            try
+            {
+                logger.LogInformation("Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} is processing", gameCode, roundNumber, player.Uuid);
+                await table.UpsertEntityAsync(nextHandEntity);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, ex.Message);
+                throw;
+            }
+
+            var nextHandMessage = new HandMessage
+            {
+                Turn = nextHandEntity.Turn,
+                Cards = nextHandEntity.Cards
+                    .Select(card =>
+                        new CardMessage
+                        {
+                            Suit = card.Suit,
+                            Rank = card.Rank,
+                            Value = card.Value,
+                        })
+                    .ToList(),
+            };
+
+            await messages.AddAsync(
+                new SignalRMessage
+                {
+                    Target = "handUpdate",
+                    GroupName = nextHandEntity.Uuid,
+                    Arguments = new [] { JsonSerializer.Serialize(nextHandMessage) },
+                });
+        }
+
+        try
+        {
+            logger.LogInformation("Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} is processing", gameCode, roundNumber, player.Uuid);
+            await table.UpsertEntityAsync(roundEntity);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Request to play cards in round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, ex.Message);
+            throw;
+        }
 
         var roundMessage = new RoundMessage
         {
@@ -213,6 +246,9 @@ public class PlayCardsFunction : FunctionBase
                         Cards = player.Second,
                         Turn = roundEntity.TurnIndex == index,
                         Stole = roundEntity.StoleIndex == index,
+                        Position = roundEntity.Positions.Contains(index)
+                            ? roundEntity.Positions.IndexOf(index)
+                            : null,
                     })
                 .ToList(),
             Discard = roundEntity.Discard

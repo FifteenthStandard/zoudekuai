@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -103,6 +104,7 @@ public class StartGameFunction : FunctionBase
             PlayerUuids = gameEntity.PlayerUuids,
             PlayerNames = gameEntity.PlayerNames,
             PlayerCards = handEntities.Select(hand => hand.Cards.Count).ToList(),
+            Positions = new List<int>(),
         };
 
         try
@@ -158,6 +160,9 @@ public class StartGameFunction : FunctionBase
                         Cards = player.Second,
                         Turn = roundEntity.TurnIndex == index,
                         Stole = roundEntity.StoleIndex == index,
+                        Position = roundEntity.Positions.Contains(index)
+                            ? roundEntity.Positions.IndexOf(index)
+                            : null,
                     })
                 .ToList(),
             Discard = roundEntity.Discard

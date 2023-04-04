@@ -12,6 +12,11 @@ import {
 } from '@mui/material';
 import {
   HourglassTop,
+  LooksOne,
+  LooksTwo,
+  Looks3,
+  Looks4,
+  Looks5,
   Report,
   Share,
 } from '@mui/icons-material';
@@ -37,11 +42,19 @@ const CardChars = [
   '🃎','🃞','🂾','🂮',
 ];
 
-const Positions = [
+const PlayerCardPositions = [
   { left: 0, top: 100 },
   { left: 0, top: 200 },
   { right: 0, top: 200 },
   { right: 0, top: 100 },
+];
+
+const PositionIcons = [
+  <LooksOne />,
+  <LooksTwo />,
+  <Looks3 />,
+  <Looks4 />,
+  <Looks5 />
 ];
 
 export default function GameStarted() {
@@ -52,8 +65,10 @@ export default function GameStarted() {
 
   const discardRef = useRef(null);
   useEffect(function () {
-    discardRef.current.lastChild.scrollIntoView();
-    window.scroll(0, 0); // revert entire window scrolling
+    if (round.discard.length) {
+      discardRef.current.lastChild.scrollIntoView();
+      window.scroll(0, 0); // revert entire window scrolling
+    }
   }, [round.discard])
   
   const [cardIndexes, setCardIndexes] = useState([]);
@@ -71,6 +86,7 @@ export default function GameStarted() {
   const handlePlayCards = () => {
     if (!hand.turn || cardIndexes.length === 0) return;
     appDispatch({ type: 'playCards', cardIndexes });
+    setCardIndexes([]);
   };
 
   return <>
@@ -89,12 +105,12 @@ export default function GameStarted() {
     </Paper>
     {
       round.players.map((player, index) =>
-        <Paper key={index} sx={{ width: player.turn ? '50vw' : '45vw', position: 'absolute', ...Positions[index] }}>
+        <Paper key={index} sx={{ width: player.turn ? '50vw' : '45vw', position: 'absolute', ...PlayerCardPositions[index] }}>
           <Stack direction="row" padding={1} spacing={2} sx={{ display: 'flex', justifyContent: 'space-around' }}>
             {player.turn && <HourglassTop />}
             <Typography>{player.name}</Typography>
             {player.stole && <Report />}
-            <Typography>{'🂠'.repeat(player.cards)}</Typography>
+            {PositionIcons[player.position] || <Typography>{'🂠'.repeat(player.cards)}</Typography>}
           </Stack>
         </Paper>
       )
