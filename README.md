@@ -6,9 +6,9 @@
 * [x] Join game
 * [x] Start game
 * [x] Reconnect
+* [x] Rejoin
 * [ ] Playing singles
 * [ ] Playing doubles/triples
 * [ ] Stealing
 * [ ] Scoring
-* [ ] Rejoin
 * [ ] Translations
