@@ -61,7 +61,7 @@ export default function GameStarted() {
   const appState = useAppState();
   const appDispatch = useAppDispatch();
   
-  const { strings, game, round, hand } = appState;
+  const { strings, game, round, hand, isHost } = appState;
 
   const discardRef = useRef(null);
   useEffect(function () {
@@ -87,6 +87,10 @@ export default function GameStarted() {
     if (!hand.turn || cardIndexes.length === 0) return;
     appDispatch({ type: 'playCards', cardIndexes });
     setCardIndexes([]);
+  };
+
+  const handleStartRound = () => {
+    appDispatch({ type: 'startRound' });
   };
 
   return <>
@@ -159,23 +163,44 @@ export default function GameStarted() {
           Play
         </Button>
     }
-    <Paper sx={{ position: 'absolute', bottom: hand.turn ? 0 : -75, left: '50%', transform: 'translateX(-50%)', height: '100px' }}>
-      <Stack direction="row" paddingInline={1}>
-        {
-          hand.cards.map(({ suit, value }, index) =>
-            <Typography
-              key={value}
-              variant="h1"
-              color={suit % 2 ? '#000' : '#f00'}
-              onClick={handleCardSelect(index)}
-              marginTop={cardIndexes.includes(index) ? '-5px' : '0px'}
-              marginBottom={cardIndexes.includes(index) ? '5px' : '0px'}
+    {
+      hand.cards.length > 0 && <Paper sx={{ position: 'absolute', bottom: hand.turn ? 0 : -75, left: '50%', transform: 'translateX(-50%)', height: '100px' }}>
+        <Stack direction="row" paddingInline={1}>
+          {
+            hand.cards.map(({ suit, value }, index) =>
+              <Typography
+                key={value}
+                variant="h1"
+                color={suit % 2 ? '#000' : '#f00'}
+                onClick={handleCardSelect(index)}
+                marginTop={cardIndexes.includes(index) ? '-5px' : '0px'}
+                marginBottom={cardIndexes.includes(index) ? '5px' : '0px'}
+              >
+                {CardChars[value]}
+              </Typography>
+            )
+          }
+        </Stack>
+      </Paper>
+    }
+    {
+      round.status === 'Finished' && (
+        isHost
+          ? <Button
+              variant="contained"
+              sx={{ position: 'absolute', bottom: 50, left: '50%', transform: 'translateX(-50%)' }}
+              onClick={handleStartRound}
             >
-              {CardChars[value]}
+              {strings.StartRound}
+            </Button>
+          : <Typography
+              padding={1}
+              color="text.secondary"
+              sx={{ position: 'absolute', bottom: 50, left: '50%', transform: 'translateX(-50%)' }}
+            >
+              {strings.WaitingForHost}
             </Typography>
-          )
-        }
-      </Stack>
-    </Paper>
+      )
+    }
   </>
 }

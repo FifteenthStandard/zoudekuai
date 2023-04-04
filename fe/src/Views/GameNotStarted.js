@@ -22,8 +22,8 @@ export default function GameNotStarted() {
 
   const enoughPlayers = game.players.length >= 4;
 
-  const handleStartGame = () => {
-    appDispatch({ type: 'startGame' });
+  const handleStartRound = () => {
+    appDispatch({ type: 'startRound' });
   };
 
   return <>
@@ -61,10 +61,10 @@ export default function GameNotStarted() {
         appState.isHost
           ? <Button
               variant="contained"
-              onClick={handleStartGame}
+              onClick={handleStartRound}
               disabled={!enoughPlayers}
             >
-              {strings.StartGame}
+              {strings.StartRound}
             </Button>
           : <Paper>
               <Typography padding={1} color="text.secondary">

@@ -106,8 +106,8 @@ export function AppProvider({ children }) {
             players: [],
           },
         };
-      case 'startGame':
-        state.client.startGame(state.game.gameCode);
+      case 'startRound':
+        state.client.startRound(state.game.gameCode);
         return {
           ...state,
           status: 'Started',

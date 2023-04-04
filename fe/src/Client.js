@@ -64,7 +64,7 @@ export default class Client {
     await this.post('/join-game', { gameCode });
   }
 
-  async startGame(gameCode) {
+  async startRound(gameCode) {
     await this.post('/start-game', { gameCode });
   }
 
