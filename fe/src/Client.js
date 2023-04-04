@@ -97,6 +97,6 @@ export default class Client {
   }
 
   async delay() {
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
 }
