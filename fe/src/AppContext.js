@@ -97,6 +97,13 @@ export function AppProvider({ children }) {
       case 'playCards':
         state.client.playCards(state.game.gameCode, action.cardIndexes);
         return state;
+      case 'rejoin':
+        return {
+          ...state,
+          status: action.game.status,
+          isHost: action.game.host,
+          game: action.game,
+        };
       case 'gameUpdate':
         return {
           ...state,

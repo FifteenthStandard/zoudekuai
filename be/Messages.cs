@@ -6,9 +6,6 @@ public class GameMessage
     [JsonPropertyName("gameCode")]
     public string GameCode { get; set; }
 
-    [JsonPropertyName("host")]
-    public string Host { get; set; }
-
     [JsonPropertyName("status")]
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public GameStatus Status { get; set; }
@@ -18,6 +15,12 @@ public class GameMessage
 
     [JsonPropertyName("players")]
     public List<string> Players { get; set; } = new List<string>();
+}
+
+public class RejoinMessage : GameMessage
+{
+    [JsonPropertyName("host")]
+    public bool Host { get; set; }
 }
 
 public class RoundMessage

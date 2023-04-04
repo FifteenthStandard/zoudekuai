@@ -31,6 +31,10 @@ export default class Client {
       this.dispatch({ type: 'disconnected' });
     })
 
+    this.connection.on('rejoin', (game, message, ...args) => {
+      if (message) this.dispatch({ type: 'snackbar', message, args });
+      this.dispatch({ type: 'rejoin', game: JSON.parse(game) });
+    });
     this.connection.on('gameUpdate', (game, message, ...args) => {
       if (message) this.dispatch({ type: 'snackbar', message, args });
       this.dispatch({ type: 'gameUpdate', game: JSON.parse(game) });

@@ -61,7 +61,26 @@ public class JoinGameFunction : FunctionBase
             ConnectionId = player.ConnectionId,
         });
 
-        if (!gameEntity.PlayerUuids.Any(uuid => uuid == player.Uuid))
+        if (gameEntity.PlayerUuids.Any(uuid => uuid == player.Uuid))
+        {
+            var gameMessage = new RejoinMessage
+            {
+                GameCode = gameEntity.GameCode,
+                Status = gameEntity.Status,
+                RoundNumber = gameEntity.RoundNumber,
+                Players = gameEntity.PlayerNames,
+                Host = player.Uuid == gameEntity.HostUuid,
+            };
+
+            await messages.AddAsync(
+                new SignalRMessage
+                {
+                    Target = "rejoin",
+                    GroupName = player.Uuid,
+                    Arguments = new [] { JsonSerializer.Serialize(gameMessage), "Rejoined" },
+                });
+        }
+        else
         {
             gameEntity.PlayerUuids.Add(player.Uuid);
             gameEntity.PlayerNames.Add(player.Name);
@@ -80,7 +99,6 @@ public class JoinGameFunction : FunctionBase
             var gameMessage = new GameMessage
             {
                 GameCode = gameEntity.GameCode,
-                Host = gameEntity.HostName,
                 Status = gameEntity.Status,
                 RoundNumber = gameEntity.RoundNumber,
                 Players = gameEntity.PlayerNames,

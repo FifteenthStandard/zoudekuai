@@ -173,7 +173,6 @@ public class StartGameFunction : FunctionBase
         var gameMessage = new GameMessage
         {
             GameCode = gameEntity.GameCode,
-            Host = gameEntity.HostName,
             Status = gameEntity.Status,
             RoundNumber = gameEntity.RoundNumber,
             Players = gameEntity.PlayerNames,
