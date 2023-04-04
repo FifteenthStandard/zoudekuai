@@ -74,10 +74,21 @@ export default class Client {
 
   async post(path, body) {
     body = JSON.stringify(body);
-    const resp = await fetch(`${baseUrl}${path}`, { body, method: 'POST', headers: { 'Authorization': `Basic ${this.uuid}` } });
-    try {
-      return await resp.json();
-    } catch {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const resp = await fetch(`${baseUrl}${path}`, { body, method: 'POST', headers: { 'Authorization': `Basic ${this.uuid}` } });
+      if (resp.ok) {
+        try {
+          return await resp.json();
+        } catch {
+          return;
+        }
+      } else if (resp.status < 500) {
+        throw new Error(`${resp.status} ${resp.statusText}: ${await resp.text()}`);
+      } else {
+        console.warn(`${resp.status} ${resp.statusText}: ${await resp.text()}`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
     }
+    throw new Error('Request failed after 5 attempts');
   }
 }
