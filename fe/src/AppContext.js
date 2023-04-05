@@ -19,7 +19,7 @@ export function getInitialValue(param, defaultValue) {
 }
 
 const uuid = getInitialValue('uuid', () => ('0000000000' + Math.floor(Math.random() * Math.pow(16, 10)).toString(16)).slice(-10));
-const lang = getInitialValue('lang', 'cn');
+const lang = getInitialValue('lang', navigator.language.startsWith('zh') ? 'zh' : 'en');
 
 let client;
 

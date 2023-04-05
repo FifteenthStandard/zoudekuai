@@ -44,7 +44,7 @@ export default function GameNotStarted() {
           </Paper>
         : <Paper>
           <Typography padding={1} fontSize={16} align="center">
-            Creating game...
+            {strings.CreatingGame}
           </Typography>
         </Paper>
     }

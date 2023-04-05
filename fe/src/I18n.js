@@ -1,6 +1,7 @@
 const Strings = {
-  'cn': {
+  'zh': {
     Cancel: '取消',
+    CreatingGame: 'Creating game...',
     Disconnected: '退出游戏',
     FreePlay: '出牌',
     GameCode: '房间号码',
@@ -25,6 +26,7 @@ const Strings = {
   },
   'en': {
     Cancel: 'Cancel',
+    CreatingGame: 'Creating game...',
     Disconnected: 'Disconnected',
     FreePlay: 'Free Play',
     GameCode: 'Game Code',

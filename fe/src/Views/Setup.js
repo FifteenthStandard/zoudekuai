@@ -87,7 +87,7 @@ export default function Start() {
         color="primary"
         fullWidth
       >
-        <ToggleButton value="cn">中文</ToggleButton>
+        <ToggleButton value="zh">中文</ToggleButton>
         <ToggleButton value="en">EN</ToggleButton>
       </ToggleButtonGroup>
       <TextField
