@@ -57,6 +57,7 @@ public class RoundEntity : ITableEntity
     public string GameCode { get; set; }
     public int RoundNumber { get; set; }
     public RoundStatus Status { get; set; }
+    public bool FreePlay { get; set; }
     public int TurnIndex { get; set; }
     public int StoleIndex { get; set; }
     [IgnoreDataMember]

@@ -40,8 +40,9 @@ export function AppProvider({ children }) {
       players: [],
     },
     round: {
-      status: null,
       roundNumber: null,
+      status: null,
+      freePlay: null,
       players: [],
       discard: [],
     },
@@ -112,8 +113,9 @@ export function AppProvider({ children }) {
           ...state,
           status: 'Started',
           round: {
+            roundNumber: state.game.roundNumber + 1,
             status: 'Started',
-            roundNumber: null,
+            freePlay: true,
             players: state.game.players.map(name => ({ name, cards: 6 })),
             discard: [],
           },

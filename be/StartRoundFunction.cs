@@ -95,6 +95,7 @@ public class StartRoundFunction : FunctionBase
             GameCode = gameEntity.GameCode,
             RoundNumber = gameEntity.RoundNumber,
             Status = RoundStatus.Started,
+            FreePlay = true,
             TurnIndex = handEntities.FindIndex(hand => hand.Turn),
             StoleIndex = -1,
             PlayerUuids = gameEntity.PlayerUuids,
@@ -146,8 +147,9 @@ public class StartRoundFunction : FunctionBase
 
         var roundMessage = new RoundMessage
         {
-            Status = roundEntity.Status,
             RoundNumber = roundEntity.RoundNumber,
+            Status = roundEntity.Status,
+            FreePlay = roundEntity.FreePlay,
             Players = roundEntity.PlayerNames.Zip(roundEntity.PlayerCards)
                 .Select((player, index) =>
                     new RoundMessage.Player

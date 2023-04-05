@@ -122,8 +122,9 @@ public class JoinGameFunction : FunctionBase
 
                 var roundMessage = new RoundMessage
                 {
-                    Status = roundEntity.Status,
                     RoundNumber = roundEntity.RoundNumber,
+                    Status = roundEntity.Status,
+                    FreePlay = roundEntity.FreePlay,
                     Players = roundEntity.PlayerNames.Zip(roundEntity.PlayerCards)
                         .Select((player, index) =>
                             new RoundMessage.Player

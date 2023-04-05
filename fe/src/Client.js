@@ -32,18 +32,22 @@ export default class Client {
     })
 
     this.connection.on('rejoin', (game, message, ...args) => {
+      console.log('rejoin', game);
       if (message) this.dispatch({ type: 'snackbar', message, args });
       this.dispatch({ type: 'rejoin', game: JSON.parse(game) });
     });
     this.connection.on('gameUpdate', (game, message, ...args) => {
+      console.log('gameUpdate', game);
       if (message) this.dispatch({ type: 'snackbar', message, args });
       this.dispatch({ type: 'gameUpdate', game: JSON.parse(game) });
     });
     this.connection.on('roundUpdate', (round, message, ...args) => {
+      console.log('roundUpdate', round);
       if (message) this.dispatch({ type: 'snackbar', message, args });
       this.dispatch({ type: 'roundUpdate', round: JSON.parse(round) });
     });
     this.connection.on('handUpdate', (hand) => {
+      console.log('handUpdate', hand);
       this.dispatch({ type: 'handUpdate', hand: JSON.parse(hand) });
     });
 

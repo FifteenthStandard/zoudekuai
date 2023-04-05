@@ -18,6 +18,34 @@ public class Card
 
     public override bool Equals(object obj) => obj is Card && ((Card)obj).Value == Value;
     public override int GetHashCode() => Value.GetHashCode();
+
+    public static bool CanBeat(IEnumerable<Card> hand, IEnumerable<Card> play)
+    {
+        hand = hand.OrderByDescending(card => card.Value).ToList();
+        play = play.OrderByDescending(card => card.Value).ToList();
+
+        var valueToBeat = play.First().Value;
+        var sizeToMatch = play.Count();
+
+        int size = 0;
+        int? currentRank = null;
+
+        foreach (var card in hand)
+        {
+            if (card.Rank == currentRank)
+            {
+                size += 1;
+            }
+            else
+            {
+                if (card.Value < valueToBeat) return false;
+                size = 1;
+                currentRank = card.Rank;
+            }
+            if (size == sizeToMatch) return true;
+        }
+        return false;
+    }
 }
 
 public class Deck

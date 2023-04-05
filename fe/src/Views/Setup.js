@@ -141,7 +141,7 @@ export default function Start() {
       open={rejoinGameOpen}
       onClose={() => setRejoinGameOpen(false)}
     >
-      <form onSubmit={handleJoinGameSubmit}>
+      <form onSubmit={handleRejoinGameSubmit}>
         <DialogTitle>{strings.RejoinGame}</DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
@@ -149,7 +149,8 @@ export default function Start() {
             <TextField
               label={strings.GameCode}
               value={storedGameCode}
-              disabled
+              autoFocus
+              readOnly
               />
           </Stack>
         </DialogContent>

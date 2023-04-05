@@ -76,7 +76,7 @@ export default function GameStarted() {
 
   useEffect(() => {
     if (hand.cards[0] && hand.cards[0].value === 0) setCardIndexes([0]);
-  }, [hand]);
+  }, [hand.cards]);
 
   const handleCardSelect = index => () => {
     if (!hand.turn) return;
@@ -95,9 +95,9 @@ export default function GameStarted() {
   };
 
   const lastPlay = round.discard.length > 0 ? round.discard[round.discard.length-1] : null;
-  const invalidPlay = round.discard.length > 0 &&
+  const invalidPlay = cardIndexes.length === 0 || (!round.freePlay &&
     (cardIndexes.length !== lastPlay.length ||
-      hand.cards[cardIndexes[0]].value < lastPlay[0].value);
+      hand.cards[cardIndexes[0]].value < lastPlay[0].value));
 
   const handlePlayCards = () => {
     if (!hand.turn || cardIndexes.length === 0) return;
@@ -170,13 +170,23 @@ export default function GameStarted() {
       }
     </Stack>
     {
+      hand.turn && round.freePlay &&
+        <Typography
+          padding={'6px'}
+          sx={{ position: 'absolute', bottom: 100 }}
+          color="text.secondary"
+        >
+          {strings.FreePlay}
+        </Typography>
+    }
+    {
       hand.turn &&
         <Button
           sx={{ position: 'absolute', bottom: 100, left: '50%', transform: 'translateX(-50%)' }}
           disabled={invalidPlay}
           onClick={handlePlayCards}
         >
-          Play
+          {strings.Play}
         </Button>
     }
     {

@@ -39,12 +39,15 @@ public class RoundMessage
         public int? Position { get; set; }
     }
 
+    [JsonPropertyName("roundNumber")]
+    public int RoundNumber { get; set; }
+
     [JsonPropertyName("status")]
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public RoundStatus Status { get; set; }
 
-    [JsonPropertyName("roundNumber")]
-    public int RoundNumber { get; set; }
+    [JsonPropertyName("freePlay")]
+    public bool FreePlay { get; set; }
 
     [JsonPropertyName("players")]
     public List<Player> Players { get; set; } = new List<Player>();
