@@ -64,7 +64,7 @@ export default function GameNotStarted() {
               onClick={handleStartRound}
               disabled={!enoughPlayers}
             >
-              {strings.StartRound}
+              {enoughPlayers ? strings.StartRound : strings.WaitingForPlayers}
             </Button>
           : <Paper>
               <Typography padding={1} color="text.secondary">

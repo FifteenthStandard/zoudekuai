@@ -175,7 +175,7 @@ public class PlayCardsFunction : FunctionBase
             await repository.SaveHandAsync(nextHandEntity);
         }
 
-        await repository.SaveRoundAsync(roundEntity, "CardsPlayed", player.Name);
+        await repository.SaveRoundAsync(roundEntity);
 
         logger.LogInformation("[{requestId}] Completed successfully", requestId);
 
