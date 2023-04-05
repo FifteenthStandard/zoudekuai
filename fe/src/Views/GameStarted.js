@@ -19,6 +19,7 @@ import {
   Looks5,
   Report,
   Share,
+  Sync,
 } from '@mui/icons-material';
 
 import {
@@ -99,6 +100,18 @@ export default function GameStarted() {
     (cardIndexes.length !== lastPlay.length ||
       hand.cards[cardIndexes[0]].value < lastPlay[0].value));
 
+  const playableCards = hand.cards.map(({ rank, value }, index) => {
+    if (cardIndexes.includes(index)) return true;
+    if (cardIndexes.length > 0 && hand.cards[cardIndexes[0]].rank !== rank) return false;
+    if (!round.freePlay && lastPlay && cardIndexes.length === lastPlay.length) return false;
+    if (!hand.turn || round.freePlay || !lastPlay) return true;
+    if (lastPlay.length === 1) return value > lastPlay[0].value;
+    const cardsInRank = hand.cards.filter(card => card.rank === rank).reverse();
+    return cardsInRank.length >= lastPlay.length &&
+      (rank > lastPlay[0].rank ||
+        (rank === lastPlay[0].rank && cardsInRank[0].value > lastPlay[0].value));
+  });
+
   const handlePlayCards = () => {
     if (!hand.turn || cardIndexes.length === 0) return;
     appDispatch({ type: 'playCards', cardIndexes });
@@ -146,6 +159,7 @@ export default function GameStarted() {
         </Paper>
       })
     }
+    <Sync sx={{ position: 'absolute', top: 170, left: '50%', transform: 'translate(-50%, -50%)' }} />
     <Stack ref={discardRef} direction="column" spacing={1}
       sx={{ position: 'absolute', top: 300, height: 'calc(100vh - 450px)', width: '100%', overflowY: 'scroll', display: 'flex', alignItems: 'center' }}
     >
@@ -190,7 +204,7 @@ export default function GameStarted() {
         </Button>
     }
     {
-      hand.cards.length > 0 && <Paper sx={{ position: 'absolute', bottom: hand.turn ? 0 : -75, left: '50%', transform: 'translateX(-50%)', height: '100px' }}>
+      hand.cards.length > 0 && <Paper sx={{ position: 'absolute', bottom: hand.turn ? 0 : -50, left: '50%', transform: 'translateX(-50%)', height: '100px' }}>
         <Stack direction="row" paddingInline={1}>
           {
             hand.cards.map(({ suit, value }, index) =>
@@ -199,8 +213,8 @@ export default function GameStarted() {
                 variant="h1"
                 color={suit % 2 ? '#000' : '#f00'}
                 onClick={handleCardSelect(index)}
-                marginTop={cardIndexes.includes(index) ? '-5px' : '0px'}
-                marginBottom={cardIndexes.includes(index) ? '5px' : '0px'}
+                marginTop={cardIndexes.includes(index) ? '-5px' : playableCards[index] ? '0px' : '50px'}
+                marginBottom={cardIndexes.includes(index) ? '5px' : playableCards[index] ? '0px' : '-50px'}
               >
                 {CardChars[value]}
               </Typography>

@@ -3,7 +3,7 @@ import {
   LogLevel,
 } from '@microsoft/signalr';
 
-const baseUrl = 'http://localhost:7071/api';
+const baseUrl = 'https://zoudekuai.azurewebsites.net/api';
 
 export default class Client {
   constructor(uuid, dispatch) {

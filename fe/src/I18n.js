@@ -10,7 +10,7 @@ const Strings = {
     JoinGameDialog: '输入房间号码',
     Name: '用户名',
     NameRequired: '输入用户名',
-    NewGame: '重新游戏',
+    NewGame: '新游戏',
     Play: 'Play 🇨🇳',
     PlayerJoined: name => `${name} has joined the game! 🇨🇳`,
     Players: 'Players 🇨🇳',

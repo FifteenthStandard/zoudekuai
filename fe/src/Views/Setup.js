@@ -121,7 +121,7 @@ export default function Start() {
             <TextField
               label={strings.GameCode}
               required
-              inputMode="number"
+              inputProps={{ inputMode: 'numeric' }}
               value={gameCode}
               onChange={handleCodeChange}
               autoFocus
