@@ -14,6 +14,8 @@ export default class Client {
   }
 
   async connect() {
+    this.post('/warmup');
+
     try {
       this.connection = new HubConnectionBuilder()
         .withUrl(baseUrl)
