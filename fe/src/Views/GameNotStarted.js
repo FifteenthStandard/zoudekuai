@@ -18,12 +18,26 @@ export default function GameNotStarted() {
   const appState = useAppState();
   const appDispatch = useAppDispatch();
 
-  const { strings, game } = appState;
+  const { strings, name, game } = appState;
 
   const enoughPlayers = game.players.length >= 4;
 
   const handleStartRound = () => {
     appDispatch({ type: 'startRound' });
+  };
+
+  const shareGameCode = () => {
+    const url = `${window.location.origin}${window.location.pathname}#${game.gameCode}`;
+    const share = {
+      title: strings.Title,
+      text: strings.Share(name),
+      url,
+    };
+    if (navigator.canShare && navigator.canShare(share)) {
+      navigator.share(share);
+    } else {
+      navigator.clipboard.writeText(url);
+    }
   };
 
   return <>
@@ -37,7 +51,7 @@ export default function GameNotStarted() {
               <Typography fontSize={16}>
                 {game.gameCode}
               </Typography>
-              <IconButton onClick={() => navigator.clipboard.writeText(game.gameCode)}>
+              <IconButton onClick={shareGameCode}>
                 <Share />
               </IconButton>
             </Stack>

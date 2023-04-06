@@ -9,8 +9,8 @@ import getStrings from './I18n';
 const AppContext = createContext(null);
 const AppDispatchContext = createContext(null);
 
-export function getInitialValue(param, defaultValue) {
-  let value = new URLSearchParams(window.location.search).get(param) || localStorage.getItem(`zoudekuai:${param}`);
+export function getInitialValue(param, defaultValue, useHash) {
+  let value = (useHash && window.location.hash.substring(1)) || new URLSearchParams(window.location.search).get(param) || localStorage.getItem(`zoudekuai:${param}`);
   if (!value) {
     value = typeof(defaultValue) === 'function' ? defaultValue() : defaultValue;
     localStorage.setItem(`zoudekuai:${param}`, value);
@@ -31,6 +31,7 @@ export function AppProvider({ children }) {
     clientState: null,
     status: 'Setup',
     lang,
+    name: null,
     strings: getStrings(lang),
     isHost: null,
     game: {
@@ -84,6 +85,7 @@ export function AppProvider({ children }) {
         state.client.newGame(action.name);
         return {
           ...state,
+          name: action.name,
           isHost: true,
           status: 'NotStarted',
           game: {
@@ -98,6 +100,7 @@ export function AppProvider({ children }) {
         state.client.joinGame(action.name, action.gameCode);
         return {
           ...state,
+          name: action.name,
           isHost: false,
           status: 'NotStarted',
           game: {

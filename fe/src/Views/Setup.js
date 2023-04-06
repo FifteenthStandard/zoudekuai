@@ -48,7 +48,7 @@ export default function Start() {
     setJoinGameOpen(true);
   };
 
-  const [gameCode, setGameCode] = useState('');
+  const [gameCode, setGameCode] = useState(getInitialValue('gameCode', '', true));
   const [gameCodeError, setGameCodeError] = useState('');
 
   const handleCodeChange = (ev) => {

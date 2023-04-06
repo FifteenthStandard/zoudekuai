@@ -63,7 +63,7 @@ export default function GameStarted() {
   const appState = useAppState();
   const appDispatch = useAppDispatch();
   
-  const { strings, game, round, hand, isHost } = appState;
+  const { strings, name, game, round, hand, isHost } = appState;
 
   const discardRef = useRef(null);
   useEffect(function () {
@@ -122,6 +122,20 @@ export default function GameStarted() {
     appDispatch({ type: 'startRound' });
   };
 
+  const shareGameCode = () => {
+    const url = `${window.location.origin}${window.location.pathname}#${game.gameCode}`;
+    const share = {
+      title: strings.Title,
+      text: strings.Share(name),
+      url,
+    };
+    if (navigator.canShare && navigator.canShare(share)) {
+      navigator.share(share);
+    } else {
+      navigator.clipboard.writeText(url);
+    }
+  };
+
   return <>
     <Paper>
       <Stack padding={1} spacing={2} direction="row" sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
@@ -131,7 +145,7 @@ export default function GameStarted() {
         <Typography fontSize={16}>
           {game.gameCode}
         </Typography>
-        <IconButton onClick={() => navigator.clipboard.writeText(game.gameCode)}>
+        <IconButton onClick={shareGameCode}>
           <Share />
         </IconButton>
       </Stack>
