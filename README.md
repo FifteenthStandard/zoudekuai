@@ -7,8 +7,8 @@
 * [x] Start game
 * [x] Reconnect
 * [x] Rejoin
-* [ ] Playing singles
-* [ ] Playing doubles/triples
-* [ ] Stealing
+* [x] Playing singles
+* [x] Playing doubles/triples
+* [x] Translations
 * [ ] Scoring
-* [ ] Translations
+* [ ] Stealing
