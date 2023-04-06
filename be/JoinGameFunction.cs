@@ -30,30 +30,18 @@ public class JoinGameFunction : FunctionBase
         SetCorsHeaders(req);
         if (IsCorsPreflight(req)) return Ok();
 
-        logger.LogInformation("Request to join an existing game");
+        var requestId = Guid.NewGuid().ToString();
+        var repository = new Repository(table, messages, logger, requestId);
+
+        logger.LogInformation("[{requestId}] Request to join an existing game", requestId);
 
         var player = await GetPlayerFromRequest(req, table);
 
         var joinGameRequest = await JsonSerializer.DeserializeAsync<JoinGameRequest>(req.Body);
         var gameCode = joinGameRequest.GameCode;
 
-        GameEntity gameEntity;
-        try
-        {
-            logger.LogInformation("Request to retrieve an existing game with Game Code {gameCode} by {uuid} is processing", gameCode, player.Uuid);
-            gameEntity = await table.GetEntityAsync<GameEntity>(GameEntity.GamePartitionKey, gameCode);
-            if (gameEntity == null)
-            {
-                logger.LogWarning("Request to retrieve an existing game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, "Game not found");
-                return BadRequest();
-            }
-            logger.LogInformation("Request to retrieve an existing game with Game Code {gameCode} by {uuid} was successful", gameCode, player.Uuid);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Request to retrieve an existing game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, ex.Message);
-            throw;
-        }
+        var gameEntity = await repository.GetGameAsync(gameCode);
+        if (gameEntity == null) return BadRequest();
 
         await actions.AddAsync(new SignalRGroupAction
         {
@@ -64,6 +52,8 @@ public class JoinGameFunction : FunctionBase
 
         if (gameEntity.PlayerUuids.Any(uuid => uuid == player.Uuid))
         {
+            logger.LogInformation("[{requestId}] Rejoining", requestId);
+
             var gameMessage = new RejoinMessage
             {
                 GameCode = gameEntity.GameCode,
@@ -83,42 +73,15 @@ public class JoinGameFunction : FunctionBase
 
             if (gameEntity.Status == GameStatus.Started)
             {
-                var roundNumber = gameEntity.RoundNumber;
-                RoundEntity roundEntity;
-                try
-                {
-                    logger.LogInformation("Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} is processing", gameCode, roundNumber, player.Uuid);
-                    roundEntity = await table.GetEntityAsync<RoundEntity>(gameCode, roundNumber.ToString());
-                    if (roundEntity == null)
-                    {
-                        logger.LogWarning("Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, "Round not found");
-                        return BadRequest();
-                    }
-                    logger.LogInformation("Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} was successful", gameCode, roundNumber, player.Uuid);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, ex.Message);
-                    throw;
-                }
+                logger.LogInformation("[{requestId}] Game in progress, resending state messages", requestId);
 
-                HandEntity handEntity;
-                try
-                {
-                    logger.LogInformation("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {uuid} is processing", gameCode, roundNumber, player.Uuid);
-                    handEntity = await table.GetEntityAsync<HandEntity>(gameCode, $"{roundNumber}_{player.Uuid}");
-                    if (handEntity == null)
-                    {
-                        logger.LogWarning("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, "Hand not found");
-                        return BadRequest();
-                    }
-                    logger.LogInformation("Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {uuid} was successful", gameCode, roundNumber, player.Uuid);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} by {uuid} failed: {reason}", gameCode, roundNumber, player.Uuid, ex.Message);
-                    throw;
-                }
+                var roundNumber = gameEntity.RoundNumber;
+
+                var roundEntity = await repository.GetCurrentRoundAsync(gameEntity);
+                if (roundEntity == null) return BadRequest();
+
+                var handEntity = await repository.GetHandAsync(gameEntity, player.Uuid);
+                if (handEntity == null) return BadRequest();
 
                 var roundMessage = new RoundMessage
                 {
@@ -184,37 +147,15 @@ public class JoinGameFunction : FunctionBase
         }
         else
         {
+            logger.LogInformation("[{requestId}] Adding to game", requestId);
+
             gameEntity.PlayerUuids.Add(player.Uuid);
             gameEntity.PlayerNames.Add(player.Name);
-            try
-            {
-                logger.LogInformation("Request to join an existing game with Game Code {gameCode} by {uuid} is processing", gameCode, player.Uuid);
-                await table.UpsertEntityAsync(gameEntity);
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Request to join an existing game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, player.Uuid, ex.Message);
-                throw;
-            }
 
-            var gameMessage = new GameMessage
-            {
-                GameCode = gameEntity.GameCode,
-                Status = gameEntity.Status,
-                RoundNumber = gameEntity.RoundNumber,
-                Players = gameEntity.PlayerNames,
-            };
-
-            await messages.AddAsync(
-                new SignalRMessage
-                {
-                    Target = "gameUpdate",
-                    GroupName = gameCode,
-                    Arguments = new [] { JsonSerializer.Serialize(gameMessage), "PlayerJoined", player.Name },
-                });
+            await repository.SaveGameAsync(gameEntity, "PlayerJoined", player.Name);
         }
 
-        logger.LogInformation("Request to join an existing game with Game Code {gameCode} by {uuid} was successful", gameCode, player.Uuid);
+        logger.LogInformation("[{requestId}] Completed successfully", requestId);
 
         return Accepted();
     }

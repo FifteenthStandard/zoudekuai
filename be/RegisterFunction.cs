@@ -25,14 +25,18 @@ public class RegisterFunction : FunctionBase
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", "options")] HttpRequest req,
         [Table("zoudekuai")] TableClient table,
         [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRGroupAction> actions,
+        [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRMessage> messages,
         ILogger logger)
     {
         SetCorsHeaders(req);
         if (IsCorsPreflight(req)) return Ok();
 
-        var registerRequest = await JsonSerializer.DeserializeAsync<RegisterRequest>(req.Body);
+        var requestId = Guid.NewGuid().ToString();
+        var repository = new Repository(table, messages, logger, requestId);
 
-        logger.LogInformation("Request to register as {name} connected via {connectionId}", registerRequest.Name, registerRequest.ConnectionId);
+        logger.LogInformation("[{requestId}] Request to register", requestId);
+
+        var registerRequest = await JsonSerializer.DeserializeAsync<RegisterRequest>(req.Body);
 
         var uuid = GetUuidFromRequest(req);
 
@@ -43,16 +47,7 @@ public class RegisterFunction : FunctionBase
             ConnectionId = registerRequest.ConnectionId,
         };
 
-        try
-        {
-            logger.LogInformation("Request to register as {name} connected via {connectionId} by {uuid} is processing", registerRequest.Name, registerRequest.ConnectionId, uuid);
-            await table.UpsertEntityAsync(playerEntity);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Request to register as {name} connected via {connectionId} by {uuid} failed: {reason}", registerRequest.Name, registerRequest.ConnectionId, uuid, ex.Message);
-            throw;
-        }
+        await repository.SavePlayerAsync(playerEntity);
 
         await actions.AddAsync(new SignalRGroupAction
         {
@@ -61,7 +56,7 @@ public class RegisterFunction : FunctionBase
             ConnectionId = registerRequest.ConnectionId,
         });
 
-        logger.LogInformation("Request to register as {name} connected via {connectionId} by {uuid} was successful", registerRequest.Name, registerRequest.ConnectionId, uuid);
+        logger.LogInformation("[{requestId}] Completed successfully", requestId);
 
         return Accepted();
     }

@@ -23,7 +23,7 @@ public class PlayCardsFunction : FunctionBase
     }
 
     [FunctionName("play-cards")]
-    public async Task<IActionResult> JoinGame(
+    public async Task<IActionResult> PlayCards(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", "options")] HttpRequest req,
         [Table("zoudekuai")] TableClient table,
         [SignalR(HubName = "zoudekuai")] IAsyncCollector<SignalRMessage> messages,
@@ -41,7 +41,6 @@ public class PlayCardsFunction : FunctionBase
 
         var playCardsRequest = await JsonSerializer.DeserializeAsync<PlayCardsRequest>(req.Body);
         var gameCode = playCardsRequest.GameCode;
-        
 
         var gameEntity = await repository.GetGameAsync(gameCode);
         if (gameEntity == null) return BadRequest();

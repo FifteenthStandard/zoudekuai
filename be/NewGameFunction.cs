@@ -29,7 +29,10 @@ public class NewGameFunction : FunctionBase
         SetCorsHeaders(req);
         if (IsCorsPreflight(req)) return Ok();
 
-        logger.LogInformation("Request to create a new game");
+        var requestId = Guid.NewGuid().ToString();
+        var repository = new Repository(table, messages, logger, requestId);
+
+        logger.LogInformation("[{requestId}] Request to create a new game", requestId);
 
         var host = await GetPlayerFromRequest(req, table);
 
@@ -46,17 +49,6 @@ public class NewGameFunction : FunctionBase
             PlayerNames = { host.Name },
         };
 
-        try
-        {
-            logger.LogInformation("Request to create a new game with Game Code {gameCode} by {uuid} is processing", gameCode, host.Uuid);
-            await table.AddEntityAsync(gameEntity);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Request to create new game with Game Code {gameCode} by {uuid} failed: {reason}", gameCode, host.Uuid, ex.Message);
-            throw;
-        }
-
         await actions.AddAsync(new SignalRGroupAction
         {
             Action = GroupAction.Add,
@@ -64,23 +56,9 @@ public class NewGameFunction : FunctionBase
             ConnectionId = host.ConnectionId,
         });
 
-        var gameMessage = new GameMessage
-        {
-            GameCode = gameEntity.GameCode,
-            Status = gameEntity.Status,
-            RoundNumber = gameEntity.RoundNumber,
-            Players = gameEntity.PlayerNames,
-        };
+        await repository.SaveGameAsync(gameEntity);
 
-        await messages.AddAsync(
-            new SignalRMessage
-            {
-                Target = "gameUpdate",
-                GroupName = gameCode,
-                Arguments = new [] { JsonSerializer.Serialize(gameMessage) },
-            });
-
-        logger.LogInformation("Request to create new game with Game Code {gameCode} by {uuid} was successful", gameCode, host.Uuid);
+        logger.LogInformation("[{requestId}] Completed successfully", requestId);
 
         var newGameResponse = new NewGameResponse
         {

@@ -26,6 +26,23 @@ public class Repository
         _requestId = requestId;
     }
 
+    public async Task SavePlayerAsync(PlayerEntity playerEntity)
+    {
+        var uuid = playerEntity.Uuid;
+
+        try
+        {
+            _logger.LogInformation("[{requestId}] Request to save player with UUID {uuid} started", _requestId, uuid);
+            await _table.UpsertEntityAsync(playerEntity);
+            _logger.LogInformation("[{requestId}] Request to save player with UUID {uuid} completed successfully", _requestId, uuid);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[{requestId}] Request to save player with UUID {uuid} failed: {reason}", _requestId, uuid, ex.Message);
+            throw;
+        }
+    }
+
     public async Task<GameEntity> GetGameAsync(string gameCode)
     {
         try
@@ -47,10 +64,51 @@ public class Repository
         }
     }
 
+    public async Task SaveGameAsync(GameEntity gameEntity, params string[] messageArguments)
+    {
+        var gameCode = gameEntity.GameCode;
+
+        try
+        {
+            _logger.LogInformation("[{requestId}] Request to save game with Game Code {gameCode} started", _requestId, gameCode);
+            await _table.UpsertEntityAsync(gameEntity);
+            _logger.LogInformation("[{requestId}] Request to save game with Game Code {gameCode} completed successfully", _requestId, gameCode);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[{requestId}] Request to save game with Game Code {gameCode} failed: {reason}", gameCode, ex.Message);
+            throw;
+        }
+
+        var gameMessage = new GameMessage
+        {
+            GameCode = gameEntity.GameCode,
+            Status = gameEntity.Status,
+            RoundNumber = gameEntity.RoundNumber,
+            Players = gameEntity.PlayerNames,
+        };
+
+        var arguments = new []
+            {
+                JsonSerializer.Serialize(gameMessage)
+            }
+            .Concat(messageArguments)
+            .ToArray();
+
+        await _messages.AddAsync(
+            new SignalRMessage
+            {
+                Target = "gameUpdate",
+                GroupName = gameEntity.GameCode,
+                Arguments = arguments,
+            });
+    }
+
     public async Task<RoundEntity> GetCurrentRoundAsync(GameEntity game)
     {
         var gameCode = game.GameCode;
         var roundNumber = game.RoundNumber.ToString();
+
         try
         {
             _logger.LogInformation("[{requestId}] Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} started", _requestId, gameCode, roundNumber);
@@ -138,6 +196,7 @@ public class Repository
     {
         var gameCode = game.GameCode;
         var roundNumber = game.RoundNumber.ToString();
+
         try
         {
             _logger.LogInformation("[{requestId}] Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} for {uuid} started", _requestId, gameCode, roundNumber, playerUuid);
