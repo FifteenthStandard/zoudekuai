@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Data.Tables;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
@@ -56,6 +57,11 @@ public class Repository
             }
             _logger.LogInformation("[{requestId}] Request to retrieve a game with Game Code {gameCode} completed successfully", _requestId, gameCode);
             return gameEntity;
+        }
+        catch (RequestFailedException)
+        {
+            _logger.LogWarning("[{requestId}] Request to retrieve a game with Game Code {gameCode} failed: {reason}", _requestId, gameCode, "Game not found");
+            return null;
         }
         catch (Exception ex)
         {
@@ -120,6 +126,11 @@ public class Repository
             }
             _logger.LogInformation("[{requestId}] Request to retrieve a round with Game Code {gameCode} and Round Number {roundNumber} completed successfully", _requestId, gameCode, roundNumber);
             return roundEntity;
+        }
+        catch (RequestFailedException)
+        {
+            _logger.LogWarning("[{requestId}] Request to retrieve a game with Game Code {gameCode} failed: {reason}", _requestId, gameCode, "Game not found");
+            return null;
         }
         catch (Exception ex)
         {
@@ -208,6 +219,11 @@ public class Repository
             }
             _logger.LogInformation("[{requestId}] Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} for {uuid} completed successfully", _requestId, gameCode, roundNumber, playerUuid);
             return handEntity;
+        }
+        catch (RequestFailedException)
+        {
+            _logger.LogWarning("[{requestId}] Request to retrieve a hand with Game Code {gameCode} and Round Number {roundNumber} for {uuid} failed: {reason}", _requestId, gameCode, roundNumber, playerUuid, "Hand not found");
+            return null;
         }
         catch (Exception ex)
         {

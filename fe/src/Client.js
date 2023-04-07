@@ -33,23 +33,23 @@ export default class Client {
       this.dispatch({ type: 'disconnected' });
     })
 
-    this.connection.on('rejoin', (game, message, ...args) => {
-      console.log('rejoin', game);
+    this.connection.on('gameJoin', (game, message, ...args) => {
+      console.debug('gameJoin', game);
       if (message) this.dispatch({ type: 'snackbar', message, args });
-      this.dispatch({ type: 'rejoin', game: JSON.parse(game) });
+      this.dispatch({ type: 'gameJoin', game: JSON.parse(game) });
     });
     this.connection.on('gameUpdate', (game, message, ...args) => {
-      console.log('gameUpdate', game);
+      console.debug('gameUpdate', game);
       if (message) this.dispatch({ type: 'snackbar', message, args });
       this.dispatch({ type: 'gameUpdate', game: JSON.parse(game) });
     });
     this.connection.on('roundUpdate', (round, message, ...args) => {
-      console.log('roundUpdate', round);
+      console.debug('roundUpdate', round);
       if (message) this.dispatch({ type: 'snackbar', message, args });
       this.dispatch({ type: 'roundUpdate', round: JSON.parse(round) });
     });
     this.connection.on('handUpdate', (hand) => {
-      console.log('handUpdate', hand);
+      console.debug('handUpdate', hand);
       this.dispatch({ type: 'handUpdate', hand: JSON.parse(hand) });
     });
 
@@ -58,7 +58,7 @@ export default class Client {
 
   async register(name) {
     while (this.connection.state === 'Connecting') {
-      console.log('Connection still connecting in attempt to register. Waiting...');
+      console.debug('Connection still connecting in attempt to register. Waiting...');
       await this.delay();
     }
     await this.post('/register', { name, connectionId: this.connection.connectionId });

@@ -66,12 +66,6 @@ export function AppProvider({ children }) {
           ...state,
           clientState: action.state,
         };
-      case 'reconnect':
-        state.client.connect();
-        return {
-          ...state,
-          clientState: 'connecting',
-        };
       case 'setLang':
         const lang = action.lang || state.lang;
         localStorage.setItem('zoudekuai:lang', lang);
@@ -80,62 +74,8 @@ export function AppProvider({ children }) {
           lang,
           strings: getStrings(lang),
         };
-      case 'newGame':
-        localStorage.setItem('zoudekuai:name', action.name);
-        state.client.newGame(action.name);
-        return {
-          ...state,
-          name: action.name,
-          isHost: true,
-          status: 'NotStarted',
-          game: {
-            gameCode: null,
-            host: state.name,
-            status: 'NotStarted',
-            players: [ action.name ],
-          },
-        };
-      case 'joinGame':
-        localStorage.setItem('zoudekuai:name', action.name);
-        state.client.joinGame(action.name, action.gameCode);
-        return {
-          ...state,
-          name: action.name,
-          isHost: false,
-          status: 'NotStarted',
-          game: {
-            gameCode: action.gameCode,
-            host: null,
-            status: 'NotStarted',
-            players: [],
-          },
-        };
-      case 'startRound':
-        state.client.startRound(state.game.gameCode);
-        return {
-          ...state,
-          status: 'Started',
-          round: {
-            roundNumber: state.game.roundNumber + 1,
-            status: 'Started',
-            freePlay: true,
-            players: state.game.players.map(name => ({ name, cards: 6 })),
-            discard: [],
-          },
-          hand: {
-            cards: new Array(6).fill({ suit: 0, value: 52, }),
-          },
-        };
-      case 'playCards':
-        state.client.playCards(state.game.gameCode, action.cardIndexes);
-        return {
-          ...state,
-          hand: {
-            ...state.hand,
-            turn: false,
-          },
-        };
-      case 'rejoin':
+      case 'gameJoin':
+        localStorage.setItem('zoudekuai:gameCode', action.game.gameCode);
         return {
           ...state,
           status: action.game.status,

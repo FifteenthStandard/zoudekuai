@@ -49,14 +49,31 @@ public class NewGameFunction : FunctionBase
             PlayerNames = { host.Name },
         };
 
+        var joinMessage = new JoinMessage
+        {
+            GameCode = gameEntity.GameCode,
+            Status = gameEntity.Status,
+            RoundNumber = gameEntity.RoundNumber,
+            Players = gameEntity.PlayerNames,
+            Host = true,
+        };
+
+        await messages.AddAsync(
+            new SignalRMessage
+            {
+                Target = "gameJoin",
+                GroupName = host.Uuid,
+                Arguments = new [] { JsonSerializer.Serialize(joinMessage) },
+            });
+
+        await repository.SaveGameAsync(gameEntity);
+
         await actions.AddAsync(new SignalRGroupAction
         {
             Action = GroupAction.Add,
             GroupName = gameCode,
             ConnectionId = host.ConnectionId,
         });
-
-        await repository.SaveGameAsync(gameEntity);
 
         logger.LogInformation("[{requestId}] Completed successfully", requestId);
 

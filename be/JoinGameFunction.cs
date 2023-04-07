@@ -41,20 +41,15 @@ public class JoinGameFunction : FunctionBase
         var gameCode = joinGameRequest.GameCode;
 
         var gameEntity = await repository.GetGameAsync(gameCode);
-        if (gameEntity == null) return BadRequest();
+        if (gameEntity == null) return BadRequest("Invalid game code");
 
-        await actions.AddAsync(new SignalRGroupAction
-        {
-            Action = GroupAction.Add,
-            GroupName = gameCode,
-            ConnectionId = player.ConnectionId,
-        });
+        if (gameEntity.PlayerUuids.Count == 5) return BadRequest("Game is full");
 
         if (gameEntity.PlayerUuids.Any(uuid => uuid == player.Uuid))
         {
             logger.LogInformation("[{requestId}] Rejoining", requestId);
 
-            var gameMessage = new RejoinMessage
+            var joinMessage = new JoinMessage
             {
                 GameCode = gameEntity.GameCode,
                 Status = gameEntity.Status,
@@ -66,9 +61,9 @@ public class JoinGameFunction : FunctionBase
             await messages.AddAsync(
                 new SignalRMessage
                 {
-                    Target = "rejoin",
+                    Target = "gameJoin",
                     GroupName = player.Uuid,
-                    Arguments = new [] { JsonSerializer.Serialize(gameMessage), "Rejoined" },
+                    Arguments = new [] { JsonSerializer.Serialize(joinMessage) },
                 });
 
             if (gameEntity.Status == GameStatus.Started)
@@ -78,10 +73,10 @@ public class JoinGameFunction : FunctionBase
                 var roundNumber = gameEntity.RoundNumber;
 
                 var roundEntity = await repository.GetCurrentRoundAsync(gameEntity);
-                if (roundEntity == null) return BadRequest();
+                if (roundEntity == null) return BadRequest(); // TODO Too late
 
                 var handEntity = await repository.GetHandAsync(gameEntity, player.Uuid);
-                if (handEntity == null) return BadRequest();
+                if (handEntity == null) return BadRequest(); // TODO Too late
 
                 var roundMessage = new RoundMessage
                 {
@@ -152,8 +147,32 @@ public class JoinGameFunction : FunctionBase
             gameEntity.PlayerUuids.Add(player.Uuid);
             gameEntity.PlayerNames.Add(player.Name);
 
+            var joinMessage = new JoinMessage
+            {
+                GameCode = gameEntity.GameCode,
+                Status = gameEntity.Status,
+                RoundNumber = gameEntity.RoundNumber,
+                Players = gameEntity.PlayerNames,
+                Host = player.Uuid == gameEntity.HostUuid,
+            };
+
+            await messages.AddAsync(
+                new SignalRMessage
+                {
+                    Target = "gameJoin",
+                    GroupName = player.Uuid,
+                    Arguments = new [] { JsonSerializer.Serialize(joinMessage) },
+                });
+
             await repository.SaveGameAsync(gameEntity, "PlayerJoined", player.Name);
         }
+
+        await actions.AddAsync(new SignalRGroupAction
+        {
+            Action = GroupAction.Add,
+            GroupName = gameCode,
+            ConnectionId = player.ConnectionId,
+        });
 
         logger.LogInformation("[{requestId}] Completed successfully", requestId);
 

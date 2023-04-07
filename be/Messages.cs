@@ -17,7 +17,7 @@ public class GameMessage
     public List<string> Players { get; set; } = new List<string>();
 }
 
-public class RejoinMessage : GameMessage
+public class JoinMessage : GameMessage
 {
     [JsonPropertyName("host")]
     public bool Host { get; set; }

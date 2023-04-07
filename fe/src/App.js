@@ -15,7 +15,6 @@ import {
 
 import {
   useAppState,
-  useAppDispatch,
 } from './AppContext';
 
 import {
@@ -26,9 +25,8 @@ import {
 
 export default function App() {
   const appState = useAppState();
-  const appDispatch = useAppDispatch();
 
-  const { status, snackbar, clientState, strings } = appState;
+  const { client, status, snackbar, clientState, strings } = appState;
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   useEffect(() => {
@@ -41,9 +39,13 @@ export default function App() {
     setConnecting(clientState === 'connecting');
   }, [clientState]);
 
-  const handleReconnect = () => {
-    appDispatch({ type: 'reconnect' });
-    setReconnectOpen(false);
+  const handleReconnect = async () => {
+    try {
+      await client.connect();
+      setReconnectOpen(false);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const [connecting, setConnecting] = useState(false);

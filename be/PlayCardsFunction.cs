@@ -43,7 +43,7 @@ public class PlayCardsFunction : FunctionBase
         var gameCode = playCardsRequest.GameCode;
 
         var gameEntity = await repository.GetGameAsync(gameCode);
-        if (gameEntity == null) return BadRequest();
+        if (gameEntity == null) return BadRequest("Invalid game code");
 
         var roundNumber = gameEntity.RoundNumber;
 

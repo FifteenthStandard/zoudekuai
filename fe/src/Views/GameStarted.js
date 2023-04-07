@@ -4,7 +4,9 @@ import {
   useState,
 } from 'react';
 import {
+  Backdrop,
   Button,
+  CircularProgress,
   IconButton,
   Paper,
   Stack,
@@ -24,7 +26,6 @@ import {
 
 import {
   useAppState,
-  useAppDispatch,
 } from '../AppContext';
 
 const CardChars = [
@@ -61,9 +62,8 @@ const PositionIcons = [
 
 export default function GameStarted() {
   const appState = useAppState();
-  const appDispatch = useAppDispatch();
   
-  const { strings, name, game, round, hand, isHost } = appState;
+  const { client, strings, name, game, round, hand, isHost } = appState;
 
   const discardRef = useRef(null);
   useEffect(function () {
@@ -112,14 +112,27 @@ export default function GameStarted() {
         (rank === lastPlay[0].rank && cardsInRank[0].value > lastPlay[0].value));
   });
 
-  const handlePlayCards = () => {
+  const handlePlayCards = async () => {
     if (!hand.turn || cardIndexes.length === 0) return;
-    appDispatch({ type: 'playCards', cardIndexes });
-    setCardIndexes([]);
+    try {
+      const play = [...cardIndexes];
+      setCardIndexes([]);
+      await client.playCards(game.gameCode, play);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const handleStartRound = () => {
-    appDispatch({ type: 'startRound' });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleStartRound = async () => {
+    setSubmitted(true);
+    try {
+      await client.startRound(game.gameCode);
+    } catch (error) {
+      console.error(error);
+    }
+    setSubmitted(false);
   };
 
   const shareGameCode = () => {
@@ -137,6 +150,7 @@ export default function GameStarted() {
   };
 
   return <>
+    <Backdrop open={submitted} sx={{ color: '#fff', zIndex: 1000000 }}><CircularProgress /></Backdrop>
     <Paper>
       <Stack padding={1} spacing={2} direction="row" sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
         <Typography fontSize={16}>

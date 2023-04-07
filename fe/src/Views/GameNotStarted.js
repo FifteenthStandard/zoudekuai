@@ -1,5 +1,10 @@
 import {
+  useState,
+} from 'react';
+import {
+  Backdrop,
   Button,
+  CircularProgress,
   IconButton,
   Paper,
   Stack,
@@ -11,19 +16,25 @@ import {
 
 import {
   useAppState,
-  useAppDispatch,
 } from '../AppContext';
 
 export default function GameNotStarted() {
   const appState = useAppState();
-  const appDispatch = useAppDispatch();
 
-  const { strings, name, game } = appState;
+  const { client, strings, name, game } = appState;
 
   const enoughPlayers = game.players.length >= 4;
 
-  const handleStartRound = () => {
-    appDispatch({ type: 'startRound' });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleStartRound = async () => {
+    setSubmitted(true);
+    try {
+      await client.startRound(game.gameCode);
+    } catch (error) {
+      console.error(error);
+    }
+    setSubmitted(false);
   };
 
   const shareGameCode = () => {
@@ -41,6 +52,7 @@ export default function GameNotStarted() {
   };
 
   return <>
+    <Backdrop open={submitted} sx={{ color: '#fff', zIndex: 1000000 }}><CircularProgress /></Backdrop>
     {
       game.gameCode
         ? <Paper>
