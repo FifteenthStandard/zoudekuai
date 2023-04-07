@@ -62,6 +62,10 @@ export function AppProvider({ children }) {
           snackbar,
         };
       case 'connectionUpdate':
+        if (action.state === 'connected' && state.game.gameCode) {
+          console.debug('Rejoining game after connection lost');
+          client.joinGame(state.name, state.game.gameCode);
+        }
         return {
           ...state,
           clientState: action.state,

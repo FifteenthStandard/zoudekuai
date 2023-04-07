@@ -19,18 +19,29 @@ export default class Client {
     try {
       this.connection = new HubConnectionBuilder()
         .withUrl(baseUrl)
+        .withAutomaticReconnect()
         .configureLogging(LogLevel.Warning)
         .build();
       await this.connection.start();
     } catch (error) {
       console.error(`Connection to server failed: ${error}`)
-      this.dispatch({ type: 'connectionUpdate', state: 'disconnected' });
+      setTimeout(() => this.connect(), 1000);
       return;
     }
 
+    this.connection.onreconnecting(error => {
+      console.error(`Connection to server lost: ${error}`);
+      this.dispatch({ type: 'connectionUpdate', state: 'reconnecting' });
+    });
+
+    this.connection.onreconnected(() => {
+      console.debug('Connection to server reconnected');
+      this.dispatch({ type: 'connectionUpdate', state: 'connected' });
+    });
+
     this.connection.onclose(error => {
       console.error(`Connection to server lost: ${error}`);
-      this.dispatch({ type: 'disconnected' });
+      this.dispatch({ type: 'connectionUpdate', state: 'disconnected' });
     })
 
     this.connection.on('gameJoin', (game, message, ...args) => {
