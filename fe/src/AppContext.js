@@ -29,6 +29,7 @@ export function AppProvider({ children }) {
     snackbar: null,
     client: client || (client = new Client(uuid, action => dispatch(action))),
     clientState: null,
+    loading: false,
     status: 'Setup',
     lang,
     name: null,
@@ -61,6 +62,11 @@ export function AppProvider({ children }) {
           ...state,
           snackbar,
         };
+      case 'loading':
+        return {
+          ...state,
+          loading: action.value,
+        }
       case 'connectionUpdate':
         if (action.state === 'connected' && state.game.gameCode) {
           console.debug('Rejoining game after connection lost');

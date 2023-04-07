@@ -24,9 +24,14 @@ import {
 } from './Views';
 
 export default function App() {
-  const appState = useAppState();
-
-  const { client, status, snackbar, clientState, strings } = appState;
+  const {
+    client,
+    clientState,
+    loading,
+    snackbar,
+    status,
+    strings,
+  } = useAppState();
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   useEffect(() => {
@@ -36,7 +41,6 @@ export default function App() {
   const [reconnectOpen, setReconnectOpen] = useState(false);
   useEffect(() => {
     if (clientState === 'disconnected') setReconnectOpen(true);
-    setConnecting(clientState === 'connecting');
   }, [clientState]);
 
   const handleReconnect = async () => {
@@ -47,8 +51,6 @@ export default function App() {
       console.error(error);
     }
   };
-
-  const [connecting, setConnecting] = useState(false);
 
   let main;
 
@@ -83,6 +85,6 @@ export default function App() {
         </DialogActions>
       </DialogContent>
     </Dialog>
-    <Backdrop open={connecting} sx={{ color: '#fff', zIndex: 1000000 }}><CircularProgress  /></Backdrop>
+    <Backdrop open={loading} sx={{ color: '#fff', zIndex: 1000000 }}><CircularProgress  /></Backdrop>
   </>
 };

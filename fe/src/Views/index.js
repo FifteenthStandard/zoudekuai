@@ -1,6 +1,6 @@
-import Setup from './Setup';
-import GameNotStarted from './GameNotStarted';
-import GameStarted from './GameStarted';
+import Setup from './Setup/Setup';
+import GameNotStarted from './GameNotStarted/GameNotStarted';
+import GameStarted from './GameStarted/GameStarted';
 
 export {
   Setup,

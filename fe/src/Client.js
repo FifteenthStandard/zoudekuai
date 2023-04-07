@@ -76,17 +76,33 @@ export default class Client {
   }
 
   async newGame(name) {
-    await this.register(name);
-    await this.post('/new-game');
+    try {
+      this.dispatch({ type: 'loading', value: true });
+      await this.register(name);
+      await this.post('/new-game');
+    } finally {
+      this.dispatch({ type: 'loading', value: false });
+    }
   }
 
   async joinGame(name, gameCode) {
-    await this.register(name);
-    await this.post('/join-game', { gameCode });
+    try {
+      this.dispatch({ type: 'loading', value: true });
+      await this.register(name);
+      await this.post('/join-game', { gameCode });
+    } finally {
+      this.dispatch({ type: 'loading', value: false });
+    }
   }
 
   async startRound(gameCode) {
-    await this.post('/start-round', { gameCode });
+    try {
+      this.dispatch({ type: 'loading', value: true });
+      await this.post('/start-round', { gameCode });
+    }
+    finally {
+      this.dispatch({ type: 'loading', value: false });
+    }
   }
 
   async playCards(gameCode, cardIndexes) {
