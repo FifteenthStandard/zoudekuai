@@ -62,25 +62,25 @@ public class PlayCardsFunction : FunctionBase
         var playedCardIndexes = playCardsRequest.CardIndexes.OrderByDescending(i => i).Distinct().ToList();
         var playedCards = playedCardIndexes.Select(index => handEntity.Cards[index]).ToList();
 
-        if (!roundEntity.Discard.Any() && !playedCards.Contains(Card.FromValue(0)))
+        if (roundEntity.StealChances > 0)
         {
-            logger.LogWarning("[{requestId}] Request failed: {reason}", requestId, "Must play Ace of Diamonds");
-            return BadRequest("Must play Ace of Diamonds");
+            logger.LogWarning("[{requestId}] Request failed: {reason}", requestId, "Can't play cards during steal round");
+            return BadRequest("Can't play cards during steal round");
         }
 
-        if (!roundEntity.FreePlay && playedCards.Count != roundEntity.Discard.Last().Count)
+        if (!roundEntity.FreePlay && !roundEntity.FirstPlayContinuation && playedCards.Count != roundEntity.Discard.Last().Count)
         {
             logger.LogWarning("[{requestId}] Request failed: {reason}", requestId, "Count must match current play");
             return BadRequest("Count must match current play");
         }
 
-        if (!roundEntity.FreePlay && playedCards[0].Value < roundEntity.Discard.Last()[0].Value)
+        if (!roundEntity.FreePlay && !roundEntity.FirstPlayContinuation && playedCards[0].Value < roundEntity.Discard.Last()[0].Value)
         {
             logger.LogWarning("[{requestId}] Request failed: {reason}", requestId, "Cards must beat current play");
             return BadRequest("Cards must beat current play");
         }
 
-        int? rank = null;
+        int? rank = roundEntity.FirstPlayContinuation ? 0 : null;
         foreach (var cardIndex in playedCardIndexes)
         {
             if (cardIndex < 0 || cardIndex >= handEntity.Cards.Count)
@@ -101,8 +101,18 @@ public class PlayCardsFunction : FunctionBase
         }
         handEntity.Turn = false;
 
-        roundEntity.Discard.Add(playedCards);
-        roundEntity.PlayerCards[roundEntity.TurnIndex] -= playedCardIndexes.Count;
+        if (roundEntity.FirstPlayContinuation)
+        {
+            roundEntity.Discard[0] = playedCards.Concat(roundEntity.Discard[0]).ToList();
+            roundEntity.PlayerCards[roundEntity.TurnIndex] -= playedCardIndexes.Count;
+            playedCards.Add(Card.FromValue(0));
+            roundEntity.FirstPlayContinuation = false;
+        }
+        else
+        {
+            roundEntity.Discard.Add(playedCards);
+            roundEntity.PlayerCards[roundEntity.TurnIndex] -= playedCardIndexes.Count;
+        }
 
         await repository.SaveHandAsync(handEntity);
 
@@ -112,6 +122,17 @@ public class PlayCardsFunction : FunctionBase
         {
             logger.LogInformation("[{requestId}] Player out of cards", requestId);
             roundEntity.Positions.Add(roundEntity.TurnIndex);
+
+            if (roundEntity.StoleIndex >= 0)
+            {
+                roundEntity.Status = RoundStatus.Finished;
+
+                await repository.SaveRoundAsync(roundEntity);
+
+                logger.LogInformation("[{requestId}] Completed successfully", requestId);
+
+                return Accepted();
+            }
         }
 
         if (roundEntity.Positions.Count == roundEntity.PlayerUuids.Count - 1)

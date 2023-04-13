@@ -10,5 +10,5 @@
 * [x] Playing singles
 * [x] Playing doubles/triples
 * [x] Translations
+* [x] Stealing
 * [ ] Scoring
-* [ ] Stealing

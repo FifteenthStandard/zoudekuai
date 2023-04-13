@@ -4,6 +4,7 @@ import {
 } from '@microsoft/signalr';
 
 const baseUrl = 'https://zoudekuai.azurewebsites.net/api';
+// const baseUrl = 'http://localhost:7071/api';
 
 export default class Client {
   constructor(uuid, dispatch) {
@@ -107,6 +108,10 @@ export default class Client {
 
   async playCards(gameCode, cardIndexes) {
     await this.post('/play-cards', { gameCode, cardIndexes });
+  }
+
+  async steal(gameCode, steal, cardIndexes) {
+    await this.post('/steal', { gameCode, steal, cardIndexes });
   }
 
   async post(path, body) {

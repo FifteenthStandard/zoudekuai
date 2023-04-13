@@ -18,7 +18,7 @@ export default function RoundFinished() {
   return isHost
     ? <Button
         variant="contained"
-        sx={{ position: 'absolute', bottom: 50, left: '50%', transform: 'translateX(-50%)' }}
+        sx={{ position: 'absolute', bottom: 60, left: '50%', transform: 'translateX(-50%)' }}
         onClick={handleStartRound}
       >
         {strings.StartRound}

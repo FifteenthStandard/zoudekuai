@@ -49,6 +49,12 @@ public class RoundMessage
     [JsonPropertyName("freePlay")]
     public bool FreePlay { get; set; }
 
+    [JsonPropertyName("stealChance")]
+    public bool StealChance { get; set; }
+
+    [JsonPropertyName("firstPlayContinuation")]
+    public bool FirstPlayContinuation { get; set; }
+
     [JsonPropertyName("players")]
     public List<Player> Players { get; set; } = new List<Player>();
 

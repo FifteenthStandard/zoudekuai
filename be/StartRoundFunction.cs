@@ -84,6 +84,8 @@ public class StartRoundFunction : FunctionBase
             RoundNumber = gameEntity.RoundNumber,
             Status = RoundStatus.Started,
             FreePlay = true,
+            StealChances = gameEntity.PlayerUuids.Count,
+            FirstPlayContinuation = false,
             TurnIndex = handEntities.FindIndex(hand => hand.Turn),
             StoleIndex = -1,
             PlayerUuids = gameEntity.PlayerUuids,

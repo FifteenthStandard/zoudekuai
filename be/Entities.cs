@@ -58,6 +58,8 @@ public class RoundEntity : ITableEntity
     public int RoundNumber { get; set; }
     public RoundStatus Status { get; set; }
     public bool FreePlay { get; set; }
+    public int StealChances { get; set; }
+    public bool FirstPlayContinuation { get; set; }
     public int TurnIndex { get; set; }
     public int StoleIndex { get; set; }
     [IgnoreDataMember]

@@ -45,6 +45,8 @@ export function AppProvider({ children }) {
       roundNumber: null,
       status: null,
       freePlay: null,
+      stealChance: null,
+      firstPlayContinuation: null,
       players: [],
       discard: [],
     },

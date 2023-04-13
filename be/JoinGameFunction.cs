@@ -83,6 +83,8 @@ public class JoinGameFunction : FunctionBase
                     RoundNumber = roundEntity.RoundNumber,
                     Status = roundEntity.Status,
                     FreePlay = roundEntity.FreePlay,
+                    StealChance = roundEntity.StealChances > 0,
+                    FirstPlayContinuation = roundEntity.FirstPlayContinuation,
                     Players = roundEntity.PlayerNames.Zip(roundEntity.PlayerCards)
                         .Select((player, index) =>
                             new RoundMessage.Player
