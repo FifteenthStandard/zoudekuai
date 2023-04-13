@@ -10,7 +10,7 @@ import Hand from './Hand';
 import RoundFinished from './RoundFinished';
 
 export default function GameStarted() {
-  const { round: status } = useAppState();
+  const { round: { status } } = useAppState();
 
   return <>
     <GameCodePanel />
