@@ -1,10 +1,10 @@
 import {
+  CircularProgress,
   Paper,
   Stack,
   Typography,
 } from '@mui/material';
 import {
-  HourglassTop,
   LooksOne,
   LooksTwo,
   Looks3,
@@ -45,7 +45,7 @@ export default function Players() {
           <Typography key="name">{player.name}</Typography>,
           player.stole && !roundFinished ? <Report key="stole" /> : null,
           PositionIcons[player.position] || (!roundFinished && <Typography key="cards">{'🂠'.repeat(player.cards)}</Typography>),
-          player.turn ? <HourglassTop key="turn" /> : null,
+          player.turn ? <CircularProgress key="turn" size="24px" /> : null,
         ];
 
         if (round.status === 'Finished') {
