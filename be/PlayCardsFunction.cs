@@ -125,9 +125,6 @@ public class PlayCardsFunction : FunctionBase
 
             if (roundEntity.StoleIndex >= 0)
             {
-                roundEntity.TurnIndex = -1;
-                roundEntity.Status = RoundStatus.Finished;
-
                 var scoreMultiplier = roundEntity.TurnIndex == roundEntity.StoleIndex ? 1 : -1;
                 for (var playerIndex = 0; playerIndex < gameEntity.PlayerScores.Count; playerIndex++)
                 {
@@ -137,6 +134,9 @@ public class PlayCardsFunction : FunctionBase
                 }
 
                 gameEntity.PlayerScores = roundEntity.PlayerScores;
+
+                roundEntity.TurnIndex = -1;
+                roundEntity.Status = RoundStatus.Finished;
 
                 await repository.SaveRoundAsync(roundEntity);
                 await repository.SaveGameAsync(gameEntity);
