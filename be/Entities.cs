@@ -45,6 +45,13 @@ public class GameEntity : ITableEntity
         get => PlayerNames.Serialize();
         set => PlayerNames = value.Deserialize();
     }
+    [IgnoreDataMember]
+    public List<int> PlayerScores { get; set; } = new List<int>();
+    public string PlayerScoresStr
+    {
+        get => PlayerScores.Serialize();
+        set => PlayerScores = value.Deserialize<int>();
+    }
 }
 
 public class RoundEntity : ITableEntity
@@ -75,6 +82,13 @@ public class RoundEntity : ITableEntity
     {
         get => PlayerNames.Serialize();
         set => PlayerNames = value.Deserialize();
+    }
+    [IgnoreDataMember]
+    public List<int> PlayerScores { get; set; } = new List<int>();
+    public string PlayerScoresStr
+    {
+        get => PlayerScores.Serialize();
+        set => PlayerScores = value.Deserialize<int>();
     }
     [IgnoreDataMember]
     public List<int> PlayerCards { get; set; } = new List<int>();

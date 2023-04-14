@@ -37,6 +37,8 @@ public class RoundMessage
         public bool Stole { get; set; }
         [JsonPropertyName("position")]
         public int? Position { get; set; }
+        [JsonPropertyName("score")]
+        public int Score { get; set; }
     }
 
     [JsonPropertyName("roundNumber")]

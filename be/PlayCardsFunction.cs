@@ -125,9 +125,21 @@ public class PlayCardsFunction : FunctionBase
 
             if (roundEntity.StoleIndex >= 0)
             {
+                roundEntity.TurnIndex = -1;
                 roundEntity.Status = RoundStatus.Finished;
 
+                var scoreMultiplier = roundEntity.TurnIndex == roundEntity.StoleIndex ? 1 : -1;
+                for (var playerIndex = 0; playerIndex < gameEntity.PlayerScores.Count; playerIndex++)
+                {
+                    roundEntity.PlayerScores[playerIndex] += (playerIndex == roundEntity.StoleIndex
+                        ? (roundEntity.PlayerScores.Count - 1) * 3
+                        : -3) * scoreMultiplier;
+                }
+
+                gameEntity.PlayerScores = roundEntity.PlayerScores;
+
                 await repository.SaveRoundAsync(roundEntity);
+                await repository.SaveGameAsync(gameEntity);
 
                 logger.LogInformation("[{requestId}] Completed successfully", requestId);
 
@@ -140,6 +152,13 @@ public class PlayCardsFunction : FunctionBase
             roundEntity.Positions.Add(roundEntity.PlayerCards.FindIndex(cards => cards > 0));
             roundEntity.TurnIndex = -1;
             roundEntity.Status = RoundStatus.Finished;
+
+            roundEntity.PlayerScores[roundEntity.Positions[0]] += 2;
+            roundEntity.PlayerScores[roundEntity.Positions[1]] += 1;
+            roundEntity.PlayerScores[roundEntity.Positions[roundEntity.Positions.Count-2]] -= 1;
+            roundEntity.PlayerScores[roundEntity.Positions[roundEntity.Positions.Count-1]] -= 2;
+
+            gameEntity.PlayerScores = roundEntity.PlayerScores;
         }
         else
         {
@@ -196,6 +215,7 @@ public class PlayCardsFunction : FunctionBase
         }
 
         await repository.SaveRoundAsync(roundEntity);
+        await repository.SaveGameAsync(gameEntity);
 
         logger.LogInformation("[{requestId}] Completed successfully", requestId);
 

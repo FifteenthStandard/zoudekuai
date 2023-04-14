@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -47,6 +48,7 @@ public class NewGameFunction : FunctionBase
             RoundNumber = 0,
             PlayerUuids = { host.Uuid },
             PlayerNames = { host.Name },
+            PlayerScores = { 40 },
         };
 
         var joinMessage = new JoinMessage

@@ -85,7 +85,7 @@ public class JoinGameFunction : FunctionBase
                     FreePlay = roundEntity.FreePlay,
                     StealChance = roundEntity.StealChances > 0,
                     FirstPlayContinuation = roundEntity.FirstPlayContinuation,
-                    Players = roundEntity.PlayerNames.Zip(roundEntity.PlayerCards)
+                    Players = roundEntity.PlayerNames.Zip(roundEntity.PlayerCards, roundEntity.PlayerScores)
                         .Select((player, index) =>
                             new RoundMessage.Player
                             {
@@ -96,6 +96,7 @@ public class JoinGameFunction : FunctionBase
                                 Position = roundEntity.Positions.Contains(index)
                                     ? roundEntity.Positions.IndexOf(index)
                                     : null,
+                                Score = player.Third,
                             })
                         .ToList(),
                     Discard = roundEntity.Discard
@@ -148,6 +149,7 @@ public class JoinGameFunction : FunctionBase
 
             gameEntity.PlayerUuids.Add(player.Uuid);
             gameEntity.PlayerNames.Add(player.Name);
+            gameEntity.PlayerScores.Add(40);
 
             var joinMessage = new JoinMessage
             {

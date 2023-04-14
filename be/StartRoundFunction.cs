@@ -90,6 +90,7 @@ public class StartRoundFunction : FunctionBase
             StoleIndex = -1,
             PlayerUuids = gameEntity.PlayerUuids,
             PlayerNames = gameEntity.PlayerNames,
+            PlayerScores = gameEntity.PlayerScores,
             PlayerCards = handEntities.Select(hand => hand.Cards.Count).ToList(),
             Positions = new List<int>(),
         };

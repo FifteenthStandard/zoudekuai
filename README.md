@@ -11,4 +11,10 @@
 * [x] Playing doubles/triples
 * [x] Translations
 * [x] Stealing
-* [ ] Scoring
+* [x] Scoring
+* [ ] 5 and 6 player mode
+* [ ] Leave game
+* [ ] End game by host
+* [ ] Timeout game after inactive
+* [ ] Horizontal mode?
+* [ ] Error handling and reliability improvements

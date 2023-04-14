@@ -163,7 +163,7 @@ public class Repository
             FreePlay = roundEntity.FreePlay,
             StealChance = roundEntity.StealChances > 0,
             FirstPlayContinuation = roundEntity.FirstPlayContinuation,
-            Players = roundEntity.PlayerNames.Zip(roundEntity.PlayerCards)
+            Players = roundEntity.PlayerNames.Zip(roundEntity.PlayerCards, roundEntity.PlayerScores)
                 .Select((player, index) =>
                     new RoundMessage.Player
                     {
@@ -174,6 +174,7 @@ public class Repository
                         Position = roundEntity.Positions.Contains(index)
                             ? roundEntity.Positions.IndexOf(index)
                             : null,
+                        Score = player.Third,
                     })
                 .ToList(),
             Discard = roundEntity.Discard

@@ -36,22 +36,28 @@ const PositionIcons = [
 export default function Players() {
   const { round } = useAppState();
 
+  const roundFinished = round.status === 'Finished';
+
   return <>
     {
       round.players.map((player, index) => {
         const elems = [
           <Typography key="name">{player.name}</Typography>,
-          player.stole ? <Report key="stole" /> : null,
-          PositionIcons[player.position] || <Typography key="cards">{'🂠'.repeat(player.cards)}</Typography>,
+          player.stole && !roundFinished ? <Report key="stole" /> : null,
+          PositionIcons[player.position] || (!roundFinished && <Typography key="cards">{'🂠'.repeat(player.cards)}</Typography>),
           player.turn ? <HourglassTop key="turn" /> : null,
         ];
+
+        if (round.status === 'Finished') {
+          elems.push(<Typography key="score">¥{player.score}</Typography>)
+        }
 
         if (index >= 2) elems.reverse();
 
         return <Paper
           key={index}
           sx={{
-            width: typeof(player.position) === 'number' ? '25vw' : player.turn ? '50vw' : '45vw',
+            width: roundFinished ? '35vw' : typeof(player.position) === 'number' ? '25vw' : player.turn ? '50vw' : '45vw',
             position: 'absolute',
             ...PlayerCardPositions[index]
           }}
